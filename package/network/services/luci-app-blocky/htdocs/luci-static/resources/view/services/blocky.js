@@ -87,7 +87,7 @@ function fetchText(url, method, body) {
 
 	args.push(url);
 
-	return fs.exec_direct('/usr/bin/uclient-fetch', args);
+	return fs.exec_direct('/bin/uclient-fetch', args);
 }
 
 function fetchJson(url, method, body) {

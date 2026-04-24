@@ -39,8 +39,8 @@ friendlyarm,nanopi-r6s)
 xunlong,orangepi-cm5-base)
 	ucidef_set_led_heartbeat "status" "STATUS" "red:status"
 	ucidef_set_led_netdev "wan" "WAN" "green:wan" "eth0"
-	ucidef_set_led_netdev "lan1" "LAN1" "green:lan-0" "eth1"
-	ucidef_set_led_netdev "lan2" "LAN2" "green:lan-1" "eth2"
+	ucidef_set_led_netdev "lan1" "LAN1" "green:lan-1" "eth1"
+	ucidef_set_led_netdev "lan2" "LAN2" "green:lan-0" "eth2"
 	;;
 friendlyarm,nanopi-r76s|\
 radxa,e20c)

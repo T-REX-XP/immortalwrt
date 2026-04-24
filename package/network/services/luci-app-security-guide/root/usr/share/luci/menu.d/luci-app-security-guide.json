@@ -1,0 +1,13 @@
+{
+	"admin/status/security-guide": {
+		"title": "Security Guide",
+		"order": 90,
+		"action": {
+			"type": "view",
+			"path": "status/security-guide"
+		},
+		"depends": {
+			"acl": [ "luci-app-security-guide" ]
+		}
+	}
+}

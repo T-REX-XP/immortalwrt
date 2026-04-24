@@ -64,7 +64,7 @@ function parseJson(text) {
 }
 
 function fetchText(url) {
-	return fs.exec_direct('/usr/bin/uclient-fetch', [ '-q', '-O', '-', url ]);
+	return fs.exec_direct('/bin/uclient-fetch', [ '-q', '-O', '-', url ]);
 }
 
 function blockyApi(path) {
