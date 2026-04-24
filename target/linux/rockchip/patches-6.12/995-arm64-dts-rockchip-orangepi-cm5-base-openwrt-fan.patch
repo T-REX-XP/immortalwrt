@@ -1,0 +1,108 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: OpenWrt <openwrt@openwrt.org>
+Date: Thu, 24 Apr 2026 00:00:00 +0000
+Subject: arm64: dts: rockchip: Orange Pi CM5 Base OpenWrt integration
+
+Wire up OpenWrt LED aliases, RTC alias, PWM case fan with thermal cooling
+maps (same pattern as Radxa ROCK 5C).
+
+---
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-orangepi-cm5-base.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-orangepi-cm5-base.dts
+@@ -19,6 +19,11 @@
+ 	aliases {
+ 		ethernet0 = &gmac1;
+ 		mmc1 = &sdmmc;
++		rtc0 = &hym8563;
++		led-boot = &status_led;
++		led-failsafe = &status_led;
++		led-running = &status_led;
++		led-upgrade = &status_led;
+ 	};
+ 
+ 	chosen {
+@@ -53,10 +58,9 @@
+ 	pwm-leds {
+ 		compatible = "pwm-leds";
+ 
+-		led-1 {
++		status_led: led-1 {
+ 			color = <LED_COLOR_ID_RED>;
+ 			function = LED_FUNCTION_STATUS;
+-			linux,default-trigger = "heartbeat";
+ 			max-brightness = <255>;
+ 			pwms = <&pwm2 0 25000 0>;
+ 		};
+@@ -85,6 +89,14 @@
+ 		};
+ 	};
+ 
++	fan: fan {
++		compatible = "pwm-fan";
++		#cooling-cells = <2>;
++		cooling-levels = <0 24 44 64 128 192 255>;
++		fan-supply = <&vcc5v0_sys>;
++		pwms = <&pwm3 0 10000 0>;
++	};
++
+ 	vbus_5v0: regulator-vbus-5v0 {
+ 		compatible = "regulator-fixed";
+ 		enable-active-high;
+@@ -174,7 +186,7 @@
+ 	pinctrl-0 = <&i2c1m2_xfer>;
+ 	status = "okay";
+ 
+-	rtc@51 {
++	hym8563: rtc@51 {
+ 		compatible = "haoyu,hym8563";
+ 		reg = <0x51>;
+ 		#clock-cells = <0>;
+@@ -273,6 +285,12 @@
+ 	status = "okay";
+ };
+ 
++&pwm3 {
++	pinctrl-0 = <&pwm3m1_pins>;
++	pinctrl-names = "default";
++	status = "okay";
++};
++
+ &pwm4 {
+ 	status = "okay";
+ };
+@@ -351,5 +369,35 @@
+ 	vp0_out_hdmi0: endpoint@ROCKCHIP_VOP2_EP_HDMI0 {
+ 		reg = <ROCKCHIP_VOP2_EP_HDMI0>;
+ 		remote-endpoint = <&hdmi0_in_vp0>;
++	};
++};
++
++&package_thermal {
++	polling-delay = <1000>;
++
++	trips {
++		package_fan0: package-fan0 {
++			temperature = <55000>;
++			hysteresis = <2000>;
++			type = "active";
++		};
++
++		package_fan1: package-fan1 {
++			temperature = <65000>;
++			hysteresis = <2000>;
++			type = "active";
++		};
+ 	};
++
++	cooling-maps {
++		map0 {
++			trip = <&package_fan0>;
++			cooling-device = <&fan THERMAL_NO_LIMIT 1>;
++		};
++
++		map1 {
++			trip = <&package_fan1>;
++			cooling-device = <&fan 2 THERMAL_NO_LIMIT>;
++		};
++	};
+ };

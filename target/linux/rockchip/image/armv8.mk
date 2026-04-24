@@ -595,6 +595,16 @@ define Device/xunlong_orangepi-5
 endef
 TARGET_DEVICES += xunlong_orangepi-5
 
+define Device/xunlong_orangepi-cm5-base
+  $(Device/rk3588s)
+  DEVICE_VENDOR := Xunlong
+  DEVICE_MODEL := Orange Pi CM5 Base
+  DEVICE_DTS := rk3588s-orangepi-cm5-base
+  UBOOT_DEVICE_NAME := orangepi-5-rk3588s
+  DEVICE_PACKAGES := kmod-hwmon-pwmfan kmod-r8125
+endef
+TARGET_DEVICES += xunlong_orangepi-cm5-base
+
 define Device/xunlong_orangepi-5-plus
   $(Device/rk3588)
   DEVICE_VENDOR := Xunlong

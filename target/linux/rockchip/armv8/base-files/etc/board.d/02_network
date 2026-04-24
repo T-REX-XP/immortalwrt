@@ -51,6 +51,9 @@ rockchip_setup_interfaces()
 	friendlyarm,nanopi-r6s)
 		ucidef_set_interfaces_lan_wan 'eth0 eth1' 'eth2'
 		;;
+	xunlong,orangepi-cm5-base)
+		ucidef_set_interfaces_lan_wan 'eth1 eth2' 'eth0'
+		;;
 	lunzn,fastrhino-r68s)
 		ucidef_set_interfaces_lan_wan 'eth0 eth1 eth2' 'eth3'
 		;;
@@ -123,7 +126,8 @@ rockchip_setup_macs()
 	friendlyarm,nanopi-r5c|\
 	friendlyarm,nanopi-r6c|\
 	widora,mangopi-m28k|\
-	xunlong,orangepi-5-plus)
+	xunlong,orangepi-5-plus|\
+	xunlong,orangepi-cm5-base)
 		wan_mac=$(macaddr_generate_from_mmc_cid mmcblk*)
 		lan_mac=$(macaddr_add "$wan_mac" 1)
 		;;
