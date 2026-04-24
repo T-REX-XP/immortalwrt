@@ -1,0 +1,31 @@
+{
+	"luci-app-peripherals": {
+		"description": "Peripherals (GPIO buttons, IR, fan, diagnostics)",
+		"read": {
+			"ubus": {
+				"luci.peripherals": [
+					"buttonList",
+					"buttonGet",
+					"irMapsGet",
+					"irKeymapsList",
+					"irDevices",
+					"moduleDiagnostics",
+					"fanGet"
+				]
+			}
+		},
+		"write": {
+			"ubus": {
+				"luci.peripherals": [
+					"buttonSet",
+					"irMapsSet",
+					"irApply",
+					"fanSet"
+				]
+			},
+			"file": {
+				"/usr/bin/ir-keytable": ["exec"]
+			}
+		}
+	}
+}

@@ -1,0 +1,20 @@
+From: Immortal OPI CM5 overlay
+Subject: rockchip: rk3588s-orangepi-5: SPL try eMMC (sdhci) before microSD
+
+Orange Pi CM5 modules boot from on-module eMMC on &sdhci. The carrier SD
+slot is &sdmmc. The stock u-boot.dtsi only listed &sdmmc, so SPL never probed
+eMMC when no SD card was inserted (MMC1 voltage select errors, then abort).
+
+Try &sdhci first, then &sdmmc, matching the generic rk3588s-u-boot.dtsi order
+but keeping Orange Pi SPI flash bootph fragments.
+
+--- a/arch/arm/dts/rk3588s-orangepi-5-u-boot.dtsi
++++ b/arch/arm/dts/rk3588s-orangepi-5-u-boot.dtsi
+@@ -5,5 +5,5 @@
+ 
+ / {
+	chosen {
+-		u-boot,spl-boot-order = "same-as-spl", &sdmmc;
++		u-boot,spl-boot-order = "same-as-spl", &sdhci, &sdmmc;
+	};
+ };
