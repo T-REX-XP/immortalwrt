@@ -1,0 +1,17 @@
+#!/bin/sh
+
+# Orange Pi CM5 Base USERKEY is mapped to KEY_WPS_BUTTON in device tree.
+
+case "$ACTION" in
+pressed)
+	for dir in /var/run/hostapd-*; do
+		[ -d "$dir" ] || continue
+		for iface in "$dir"/*; do
+			[ -S "$iface" ] || continue
+			hostapd_cli -p "$dir" -i "${iface##*/}" wps_pbc 2>/dev/null &
+		done
+	done
+	;;
+esac
+
+return 0

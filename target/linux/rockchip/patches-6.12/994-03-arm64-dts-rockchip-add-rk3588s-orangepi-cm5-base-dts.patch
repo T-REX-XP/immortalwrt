@@ -46,7 +46,7 @@ router board (RK3588S module + carrier with GbE + 2x RTL8125).
 +			debounce-interval = <50>;
 +			gpios = <&gpio3 RK_PC6 GPIO_ACTIVE_LOW>;
 +			label = "USERKEY";
-+			linux,code = <BTN_MISC>;
++			linux,code = <KEY_WPS_BUTTON>;
 +			wakeup-source;
 +		};
 +	};
