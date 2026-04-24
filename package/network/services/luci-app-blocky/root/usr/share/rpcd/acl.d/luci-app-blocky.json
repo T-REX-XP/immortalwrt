@@ -1,0 +1,22 @@
+{
+	"luci-app-blocky": {
+		"description": "Grant access to Blocky LuCI app",
+		"read": {
+			"file": {
+				"/etc/blocky/config.yml": [ "read" ],
+				"/etc/init.d/blocky": [ "exec" ],
+				"/usr/bin/uclient-fetch": [ "exec" ]
+			},
+			"ubus": {
+				"service": [ "list" ]
+			}
+		},
+		"write": {
+			"file": {
+				"/etc/blocky/config.yml": [ "write" ],
+				"/etc/init.d/blocky": [ "exec" ],
+				"/usr/bin/uclient-fetch": [ "exec" ]
+			}
+		}
+	}
+}

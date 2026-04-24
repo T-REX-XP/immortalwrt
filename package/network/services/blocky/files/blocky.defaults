@@ -1,0 +1,9 @@
+#!/bin/sh
+
+[ -x /etc/init.d/blocky ] || exit 0
+[ -s /etc/blocky/config.yml ] || exit 0
+
+/etc/init.d/blocky enable
+/etc/init.d/blocky start
+
+exit 0

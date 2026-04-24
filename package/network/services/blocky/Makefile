@@ -56,6 +56,8 @@ define Package/blocky/install
 	$(INSTALL_BIN) ./files/blocky.init $(1)/etc/init.d/blocky
 	$(INSTALL_DIR) $(1)/etc/blocky
 	$(INSTALL_CONF) ./files/config.yml $(1)/etc/blocky/config.yml
+	$(INSTALL_DIR) $(1)/etc/uci-defaults
+	$(INSTALL_BIN) ./files/blocky.defaults $(1)/etc/uci-defaults/90-blocky-enable
 endef
 
 $(eval $(call GoBinPackage,blocky))
