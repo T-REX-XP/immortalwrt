@@ -430,18 +430,24 @@ return view.extend({
 		var status = data[1];
 		var rawMetrics = data[2];
 		var metrics = parseMetrics(rawMetrics);
-
-		return E('div', {}, [
+		var content = [
 			E('h2', {}, [ _('Blocky Status') ]),
 			E('p', { 'class': 'cbi-section-descr' }, [
 				_('Runtime status and Prometheus metrics from the local Blocky instance.')
-			]),
-			metrics.order.length ? [
+			])
+		];
+
+		if (metrics.order.length) {
+			content = content.concat([
 				renderStatus(status, service, metrics),
 				renderOverview(metrics),
 				renderAllMetrics(metrics)
-			] : renderNoMetrics(rawMetrics)
-		]);
+			]);
+		} else {
+			content.push(renderNoMetrics(rawMetrics));
+		}
+
+		return E('div', {}, content);
 	},
 
 	handleSaveApply: null,

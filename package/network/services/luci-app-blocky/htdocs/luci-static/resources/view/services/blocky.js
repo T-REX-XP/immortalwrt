@@ -537,6 +537,46 @@ function renderConfig(content) {
 	]);
 }
 
+function renderTabs(tabs) {
+	var tabButtons = [];
+	var tabPanels = [];
+	var activeIndex = 0;
+
+	function activate(index) {
+		tabButtons.forEach(function(button, pos) {
+			button.className = pos === index ? 'cbi-tab' : 'cbi-tab-disabled';
+		});
+
+		tabPanels.forEach(function(panel, pos) {
+			panel.style.display = pos === index ? '' : 'none';
+		});
+	}
+
+	tabs.forEach(function(tab, index) {
+		var button = E('li', {
+			'class': index === activeIndex ? 'cbi-tab' : 'cbi-tab-disabled',
+			'role': 'tab',
+			'click': function(ev) {
+				ev.preventDefault();
+				activate(index);
+			}
+		}, [
+			E('a', { 'href': '#' }, [ tab.title ])
+		]);
+		var panel = E('div', {
+			'role': 'tabpanel',
+			'style': index === activeIndex ? '' : 'display:none'
+		}, tab.nodes);
+
+		tabButtons.push(button);
+		tabPanels.push(panel);
+	});
+
+	return E('div', {}, [
+		E('ul', { 'class': 'cbi-tabmenu', 'role': 'tablist' }, tabButtons)
+	].concat(tabPanels));
+}
+
 return view.extend({
 	load: function() {
 		return Promise.all([
@@ -558,15 +598,39 @@ return view.extend({
 			E('p', { 'class': 'cbi-section-descr' }, [
 				_('Manage the local Blocky DNS proxy and ad-blocker. This LuCI-native dashboard implements the practical controls from Blocky UI projects without adding a separate web service.')
 			]),
-			renderStatus(status, service),
-			renderOverview(metrics),
-			renderBlockingControls(status),
-			renderOperations(service),
-			renderServiceControls(service),
-			renderQuery(),
-			renderQueryLogsNotice(config),
-			renderMetrics(metrics),
-			renderConfig(config)
+			renderTabs([
+				{
+					title: _('Configuration'),
+					nodes: [ renderConfig(config) ]
+				},
+				{
+					title: _('Status'),
+					nodes: [
+						renderStatus(status, service),
+						renderOverview(metrics)
+					]
+				},
+				{
+					title: _('Controls'),
+					nodes: [
+						renderBlockingControls(status),
+						renderOperations(service),
+						renderServiceControls(service)
+					]
+				},
+				{
+					title: _('DNS Query'),
+					nodes: [ renderQuery() ]
+				},
+				{
+					title: _('Metrics'),
+					nodes: [ renderMetrics(metrics) ]
+				},
+				{
+					title: _('Logs'),
+					nodes: [ renderQueryLogsNotice(config) ]
+				}
+			])
 		]);
 	},
 
