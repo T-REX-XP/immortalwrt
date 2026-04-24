@@ -9,7 +9,7 @@ router board (RK3588S module + carrier with GbE + 2x RTL8125).
 ---
 --- /dev/null
 +++ b/arch/arm64/boot/dts/rockchip/rk3588s-orangepi-cm5-base.dts
-@@ -0,0 +1,355 @@
+@@ -0,0 +1,379 @@
 +// SPDX-License-Identifier: (GPL-2.0+ OR MIT)
 +
 +/dts-v1/;
@@ -220,12 +220,36 @@ router board (RK3588S module + carrier with GbE + 2x RTL8125).
 +	reset-gpios = <&gpio4 RK_PA2 GPIO_ACTIVE_HIGH>;
 +	vpcie3v3-supply = <&vcc_3v3>;
 +	status = "okay";
++
++	pcie@0,0 {
++		reg = <0x00300000 0 0 0 0>;
++		#address-cells = <3>;
++		#size-cells = <2>;
++
++		pcie-eth@30,0 {
++			compatible = "pci10ec,8125";
++			reg = <0x000000 0 0 0 0>;
++			label = "eth1";
++		};
++	};
 +};
 +
 +&pcie2x1l2 {
 +	reset-gpios = <&gpio3 RK_PD1 GPIO_ACTIVE_HIGH>;
 +	vpcie3v3-supply = <&vcc_3v3>;
 +	status = "okay";
++
++	pcie@0,0 {
++		reg = <0x00400000 0 0 0 0>;
++		#address-cells = <3>;
++		#size-cells = <2>;
++
++		pcie-eth@40,0 {
++			compatible = "pci10ec,8125";
++			reg = <0x000000 0 0 0 0>;
++			label = "eth2";
++		};
++	};
 +};
 +
 +&pinctrl {
