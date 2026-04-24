@@ -601,7 +601,7 @@ define Device/xunlong_orangepi-cm5-base
   DEVICE_MODEL := Orange Pi CM5 Base
   DEVICE_DTS := rk3588s-orangepi-cm5-base
   UBOOT_DEVICE_NAME := orangepi-5-rk3588s
-  DEVICE_PACKAGES := kmod-hwmon-pwmfan kmod-r8125 tailscale cloudflared luci-app-tailscale-community luci-app-cloudflared adblock luci-app-adblock blocky
+  DEVICE_PACKAGES := kmod-hwmon-pwmfan kmod-r8125 tailscale cloudflared luci-app-tailscale-community luci-app-cloudflared adblock luci-app-adblock blocky docker dockerd luci-app-docker luci-app-dockerman kmod-wireguard wireguard-tools luci-proto-wireguard rpcd-mod-wireguard
 endef
 TARGET_DEVICES += xunlong_orangepi-cm5-base
 
