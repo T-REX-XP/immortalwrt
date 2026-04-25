@@ -52,6 +52,8 @@ rockchip_setup_interfaces()
 		ucidef_set_interfaces_lan_wan 'eth0 eth1' 'eth2'
 		;;
 	xunlong,orangepi-cm5-base)
+		ucidef_set_network_device_path 'eth1' 'platform/a40c00000.pcie/pci0003:30/0003:30:00.0/0003:31:00.0'
+		ucidef_set_network_device_path 'eth2' 'platform/a41000000.pcie/pci0004:40/0004:40:00.0/0004:41:00.0'
 		ucidef_set_interface "lan" device 'eth1 eth2' protocol static ipaddr '192.168.8.1'
 		ucidef_set_interface_wan 'eth0'
 		;;
