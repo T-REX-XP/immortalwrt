@@ -36,4 +36,4 @@ const methods = {
 	}
 };
 
-return { methods };
+return { 'luci.speedtest': methods };

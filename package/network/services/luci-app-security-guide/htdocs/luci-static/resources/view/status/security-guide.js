@@ -169,6 +169,33 @@ var CHECKLIST = [
 	_('Remember that external test sites receive your public IP, request headers, and browser metadata.')
 ];
 
+var TABS = [
+	{
+		title: _('Overview'),
+		sections: []
+	},
+	{
+		title: _('DNS and IP'),
+		sections: [ 0, 1 ]
+	},
+	{
+		title: _('Browser'),
+		sections: [ 3 ]
+	},
+	{
+		title: _('Ad Blocking'),
+		sections: [ 2 ]
+	},
+	{
+		title: _('IPv6 and TLS'),
+		sections: [ 4 ]
+	},
+	{
+		title: _('Firewall'),
+		sections: [ 5 ]
+	}
+];
+
 function externalLink(url, title) {
 	return E('a', {
 		'href': url,
@@ -211,6 +238,64 @@ function renderChecklist() {
 	]);
 }
 
+function renderTabs() {
+	var tabButtons = [];
+	var tabPanels = [];
+	var activeIndex = 0;
+
+	function activate(index) {
+		tabButtons.forEach(function(button, pos) {
+			button.className = pos === index ? 'cbi-tab' : 'cbi-tab-disabled';
+		});
+
+		tabPanels.forEach(function(panel, pos) {
+			panel.style.display = pos === index ? '' : 'none';
+		});
+	}
+
+	TABS.forEach(function(tab, index) {
+		var nodes = tab.sections.length
+			? tab.sections.map(function(sectionIndex) {
+				return renderSection(SECTIONS[sectionIndex]);
+			})
+			: [
+				renderChecklist(),
+				E('div', { 'class': 'cbi-section' }, [
+					E('h3', {}, [ _('How to use this guide') ]),
+					E('p', {}, [
+						_('Open these checks from a LAN client whose routing, DNS, VPN, or ad-blocking behavior you want to validate. Results describe the client browser and network path, not only the router.')
+					]),
+					E('p', {}, [
+						_('Use the tabs to focus on one validation area at a time after changing DNS, DHCP, VPN, WireGuard, AmneziaWG, Tailscale, Blocky, Adblock, or firewall settings.')
+					])
+				])
+			];
+
+		var button = E('li', {
+			'class': index === activeIndex ? 'cbi-tab' : 'cbi-tab-disabled',
+			'role': 'tab',
+			'click': function(ev) {
+				ev.preventDefault();
+				activate(index);
+			}
+		}, [
+			E('a', { 'href': '#' }, [ tab.title ])
+		]);
+
+		var panel = E('div', {
+			'role': 'tabpanel',
+			'style': index === activeIndex ? '' : 'display:none'
+		}, nodes);
+
+		tabButtons.push(button);
+		tabPanels.push(panel);
+	});
+
+	return E('div', {}, [
+		E('ul', { 'class': 'cbi-tabmenu', 'role': 'tablist' }, tabButtons)
+	].concat(tabPanels));
+}
+
 return view.extend({
 	render: function() {
 		return E('div', {}, [
@@ -218,8 +303,8 @@ return view.extend({
 			E('p', { 'class': 'cbi-section-descr' }, [
 				_('Quick links for validating DNS leaks, public IP, browser leaks, ad blocking, IPv6, TLS, and firewall exposure from LAN clients. This page is static and does not send router data anywhere.')
 			]),
-			renderChecklist()
-		].concat(SECTIONS.map(renderSection)));
+			renderTabs()
+		]);
 	},
 
 	handleSaveApply: null,

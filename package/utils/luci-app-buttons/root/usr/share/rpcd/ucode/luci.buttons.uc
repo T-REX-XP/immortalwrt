@@ -143,4 +143,4 @@ const methods = {
 	}
 };
 
-return { methods };
+return { 'luci.buttons': methods };
