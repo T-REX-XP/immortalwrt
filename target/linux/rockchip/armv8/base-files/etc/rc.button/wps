@@ -4,6 +4,7 @@
 
 case "$ACTION" in
 pressed)
+	logger -t button "USERKEY/WPS pressed button=$BUTTON seen=$SEEN"
 	for dir in /var/run/hostapd-*; do
 		[ -d "$dir" ] || continue
 		for iface in "$dir"/*; do

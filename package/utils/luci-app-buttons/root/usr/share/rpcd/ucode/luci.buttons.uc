@@ -47,7 +47,7 @@ function template_for(name, preset) {
 		return `${header}case \"$ACTION\" in\nreleased)\n\tlogger -t button \"reboot requested by $BUTTON\"\n\treboot\n\t;;\nesac\n\nreturn 0\n`;
 	}
 	if (preset == 'wps' || name == 'wps') {
-		return `${header}case \"$ACTION\" in\npressed)\n\tfor dir in /var/run/hostapd-*; do\n\t\t[ -d \"$dir\" ] || continue\n\t\tfor iface in \"$dir\"/*; do\n\t\t\t[ -S \"$iface\" ] || continue\n\t\t\thostapd_cli -p \"$dir\" -i \"\${iface##*/}\" wps_pbc 2>/dev/null &\n\t\tdone\n\tdone\n\t;;\nesac\n\nreturn 0\n`;
+		return `${header}case \"$ACTION\" in\npressed)\n\tlogger -t button \"USERKEY/WPS pressed button=$BUTTON seen=$SEEN\"\n\tfor dir in /var/run/hostapd-*; do\n\t\t[ -d \"$dir\" ] || continue\n\t\tfor iface in \"$dir\"/*; do\n\t\t\t[ -S \"$iface\" ] || continue\n\t\t\thostapd_cli -p \"$dir\" -i \"\${iface##*/}\" wps_pbc 2>/dev/null &\n\t\tdone\n\tdone\n\t;;\nesac\n\nreturn 0\n`;
 	}
 	return `${header}case \"$ACTION\" in\npressed)\n\tlogger -t button \"pressed $BUTTON\"\n\t;;\nreleased)\n\tlogger -t button \"released $BUTTON after $SEEN seconds\"\n\t;;\nesac\n\nreturn 0\n`;
 }
