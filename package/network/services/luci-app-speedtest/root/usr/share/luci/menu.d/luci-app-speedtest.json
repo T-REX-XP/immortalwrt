@@ -1,0 +1,24 @@
+{
+	"admin/network/speedtest": {
+		"title": "Speed Test",
+		"order": 95,
+		"action": {
+			"type": "view",
+			"path": "network/speedtest"
+		},
+		"depends": {
+			"acl": [ "luci-app-speedtest" ]
+		}
+	},
+	"admin/status/speedtest": {
+		"title": "Speed Test",
+		"order": 85,
+		"action": {
+			"type": "view",
+			"path": "network/speedtest"
+		},
+		"depends": {
+			"acl": [ "luci-app-speedtest" ]
+		}
+	}
+}

@@ -17,6 +17,7 @@ const UCI_SEC = 'peripherals';
 const DIAG_MODULES = [
 	{ module: 'rc_core', label: 'RC core (kmod-multimedia-input)', optional: false },
 	{ module: 'gpio_ir_recv', label: 'GPIO IR receiver (kmod-ir-gpio-cir)', optional: false },
+	{ module: 'pwm_fan', label: 'PWM fan hwmon (kmod-hwmon-pwmfan)', optional: true },
 	{ module: 'gpio_button_hotplug', label: 'GPIO button hotplug (/etc/rc.button)', optional: true },
 	{ module: 'gpio_keys', label: 'GPIO keys (polled)', optional: true }
 ];
@@ -115,6 +116,57 @@ function find_fan_hwmon() {
 		}
 	} catch (e) {}
 	return null;
+}
+
+function list_hwmon() {
+	let items = [];
+	try {
+		let list = lsdir('/sys/class/hwmon');
+		for (let i = 0; i < length(list); i++) {
+			let h = list[i];
+			if (!match(h, /^hwmon[0-9]+$/))
+				continue;
+			let name = '';
+			try {
+				name = trim(readfile(`/sys/class/hwmon/${h}/name`));
+			} catch (e) {}
+			push(items, { id: h, name, path: `/sys/class/hwmon/${h}` });
+		}
+	} catch (e) {}
+	return items;
+}
+
+function dt_has_pwm_fan() {
+	try {
+		let compat = readfile('/proc/device-tree/fan/compatible');
+		return !!match(compat, /pwm-fan/);
+	} catch (e) {}
+	try {
+		let compat = readfile('/proc/device-tree/pwm-fan/compatible');
+		return !!match(compat, /pwm-fan/);
+	} catch (e) {}
+	return false;
+}
+
+function device_tree_model() {
+	try {
+		return trim(readfile('/proc/device-tree/model'));
+	} catch (e) {}
+	return '';
+}
+
+function fan_diag(base, procset) {
+	const mod_r = kernel_release_for_modules();
+	const lib_path = length(mod_r) ? `/lib/modules/${mod_r}` : '/lib/modules';
+	return {
+		hwmon: list_hwmon(),
+		module_state: module_state('pwm_fan', procset),
+		module_file: !!access(`${lib_path}/pwm-fan.ko`),
+		autoload: !!access('/etc/modules.d/60-hwmon-pwmfan'),
+		dt_pwm_fan: dt_has_pwm_fan(),
+		device_tree_model: device_tree_model(),
+		path: base || ''
+	};
 }
 
 function clamp_pwm(v) {
@@ -353,8 +405,10 @@ const methods = {
 			let mode = uci_get_opt('fan_mode', 'auto');
 			let pwm_uci = clamp_pwm(uci_get_opt('fan_pwm', '192'));
 			let base = find_fan_hwmon();
+			const pm = proc_modules_set();
+			const diag = fan_diag(base, pm.set);
 			if (!base)
-				return { present: false, mode, pwm_uci };
+				return { present: false, mode, pwm_uci, diagnostics: diag };
 			let pwm1 = '', en = '', rpm = '';
 			try {
 				pwm1 = trim(readfile(`${base}/pwm1`));
@@ -372,7 +426,8 @@ const methods = {
 				pwm1_enable: en,
 				rpm,
 				mode,
-				pwm_uci
+				pwm_uci,
+				diagnostics: diag
 			};
 		}
 	},

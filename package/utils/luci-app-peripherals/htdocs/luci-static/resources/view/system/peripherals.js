@@ -95,10 +95,46 @@ function tableTitles(headers) {
 }
 
 function fanMetaBlock(fan) {
-	if (!fan || !fan.present)
-		return E('p', { 'class': 'alert-message notice' }, [
-			_('No pwmfan device was found. Check that the PWM fan is described in the device tree and that %s is installed.').format('kmod-hwmon-pwmfan')
+	var diag = (fan || {}).diagnostics || {};
+	if (!fan || !fan.present) {
+		var hwmon = diag.hwmon || [];
+		var rows = [
+			E('tr', { 'class': 'tr' }, [
+				E('td', { 'class': 'td' }, [ _('Device tree pwm-fan node') ]),
+				E('td', { 'class': 'td' }, [ diag.dt_pwm_fan ? _('present') : _('missing') ])
+			]),
+			E('tr', { 'class': 'tr' }, [
+				E('td', { 'class': 'td' }, [ _('pwm_fan module') ]),
+				E('td', { 'class': 'td' }, [ diag.module_state || _('unknown') ])
+			]),
+			E('tr', { 'class': 'tr' }, [
+				E('td', { 'class': 'td' }, [ _('pwm-fan.ko') ]),
+				E('td', { 'class': 'td' }, [ diag.module_file ? _('present') : _('missing') ])
+			]),
+			E('tr', { 'class': 'tr' }, [
+				E('td', { 'class': 'td' }, [ _('Autoload file') ]),
+				E('td', { 'class': 'td' }, [ diag.autoload ? _('present') : _('missing') ])
+			]),
+			E('tr', { 'class': 'tr' }, [
+				E('td', { 'class': 'td' }, [ _('Detected hwmon devices') ]),
+				E('td', { 'class': 'td' }, [
+					hwmon.length ? hwmon.map(function(h) {
+						return '%s=%s'.format(h.id || '?', h.name || _('unnamed'));
+					}).join(', ') : _('none')
+				])
+			])
+		];
+
+		return E('div', {}, [
+			E('p', { 'class': 'alert-message warning' }, [
+				_('No pwmfan device was found. If the device tree node is missing, the board is likely booting an older DTB/image. If the node exists but the module is missing or not loaded, reinstall/sysupgrade with the generated image or run %s and check %s.').format('modprobe pwm-fan', 'dmesg')
+			]),
+			E('table', { 'class': 'table' }, [
+				tableTitles([ _('Check'), _('State') ]),
+				E('tbody', {}, rows)
+			])
 		]);
+	}
 	return E('p', {}, [
 		_('PWM: %s, control: %s, RPM: %s').format(
 			fan.pwm1 != null ? fan.pwm1 : '—',
@@ -170,7 +206,7 @@ return view.extend({
 		if (!diags.required_ok)
 			summaryParts.push(_('One or more required kernel features are not loaded or built in.'));
 		else if (!diags.ir_stack_ok)
-			summaryParts.push(_('Infrared support is incomplete. Install and load %s and %s.').format('kmod-multimedia-input', 'kmod-ir-gpio-cir'));
+			summaryParts.push(_('Infrared kernel modules are not loaded. On Orange Pi CM5 Base this does not enable the onboard IR receiver by itself, because the onboard receiver needs PWM input-capture support that is not available in the current upstream kernel binding/driver.'));
 
 		var summary = E('div', { 'class': summaryClass }, [
 			E('strong', {}, [ _('Status') ]),
@@ -506,12 +542,15 @@ return view.extend({
 		]);
 
 		var tabIr = E('div', { 'data-tab': 'ir', 'data-tab-title': _('Infrared') }, [
+			E('p', { 'class': 'alert-message notice' }, [
+				_('Orange Pi CM5 Base has onboard IR hardware, but the current upstream kernel cannot expose it as an RC device yet because the receiver is wired through PWM input capture. Keymap editing remains available for future support or for external receivers that create %s entries.').format('/sys/class/rc/rc*')
+			]),
 			cbiSection(
 				_('RC core'),
 				[ _('Kernel remote control devices (%s).').format('/sys/class/rc/') ],
 				[
 					(irDev.devices || []).length ? devTable : E('p', { 'class': 'alert-message notice' }, [
-						_('No RC devices were found. Verify the device tree and that %s and %s are loaded.').format('kmod-multimedia-input', 'kmod-ir-gpio-cir')
+						_('No RC devices were found. This is expected for the onboard CM5 Base IR receiver with the current kernel. If you attach a separate supported receiver, verify its device tree/overlay and that %s and %s are loaded.').format('kmod-multimedia-input', 'kmod-ir-gpio-cir')
 					])
 				]
 			),
