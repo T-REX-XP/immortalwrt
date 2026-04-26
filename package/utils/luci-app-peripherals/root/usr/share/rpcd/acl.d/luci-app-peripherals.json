@@ -10,6 +10,7 @@
 					"irKeymapsList",
 					"irDevices",
 					"moduleDiagnostics",
+					"debugReport",
 					"fanGet"
 				]
 			}

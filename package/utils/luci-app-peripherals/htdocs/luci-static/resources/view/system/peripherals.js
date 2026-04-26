@@ -63,6 +63,12 @@ var callModuleDiagnostics = rpc.declare({
 	}
 });
 
+var callDebugReport = rpc.declare({
+	object: 'luci.peripherals',
+	method: 'debugReport',
+	expect: { report: '' }
+});
+
 var callFanGet = rpc.declare({
 	object: 'luci.peripherals',
 	method: 'fanGet',
@@ -337,7 +343,27 @@ return view.extend({
 				E('button', {
 					'class': 'btn cbi-button-action',
 					'click': ui.createHandlerFn(this, 'handleDiagRefresh')
-				}, _('Refresh'))
+				}, _('Refresh')),
+				' ',
+				E('button', {
+					'class': 'btn cbi-button-apply',
+					'click': ui.createHandlerFn(this, 'handleDebugReport')
+				}, _('Collect debug log'))
+			]),
+			E('div', {
+				'id': 'periph-debug-report-wrap',
+				'style': 'display:none;margin-top:1em'
+			}, [
+				E('h3', {}, [ _('Debug log') ]),
+				E('p', { 'class': 'cbi-section-descr' }, [
+					_('Copy this report after reproducing the behavior. It includes read-only kernel, device tree, module, fan, button, IR, thermal, and log state.')
+				]),
+				E('textarea', {
+					'id': 'periph-debug-report',
+					'class': 'cbi-input-textarea',
+					'readonly': 'readonly',
+					'style': 'width:100%;min-height:34em;font-family:monospace;white-space:pre'
+				})
 			])
 		]);
 	},
@@ -351,6 +377,28 @@ return view.extend({
 			root.parentNode.replaceChild(next, root);
 		}, this)).catch(function(e) {
 			ui.addNotification(null, E('p', {}, [ _('Could not refresh diagnostics: %s').format(e) ]), 'error');
+		});
+	},
+
+	handleDebugReport: function() {
+		var wrap = document.getElementById('periph-debug-report-wrap');
+		var ta = document.getElementById('periph-debug-report');
+		if (wrap)
+			wrap.style.display = '';
+		if (ta)
+			ta.value = _('Collecting debug log...');
+
+		return callDebugReport().then(function(r) {
+			if (ta) {
+				ta.value = r.report || '';
+				ta.focus();
+				ta.select();
+			}
+			ui.addNotification(null, E('p', {}, [ _('Debug log collected. Copy it from the text area and include it with the behavior description.') ]), 'info');
+		}).catch(function(e) {
+			if (ta)
+				ta.value = '';
+			ui.addNotification(null, E('p', {}, [ _('Could not collect debug log: %s').format(e) ]), 'error');
 		});
 	},
 
