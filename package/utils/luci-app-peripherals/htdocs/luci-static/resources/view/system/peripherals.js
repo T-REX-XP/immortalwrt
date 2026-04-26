@@ -75,6 +75,12 @@ var callFanSet = rpc.declare({
 	params: ['mode', 'pwm']
 });
 
+var callFanTest = rpc.declare({
+	object: 'luci.peripherals',
+	method: 'fanTest',
+	params: ['pwm']
+});
+
 var isReadonlyView = !L.hasViewPermission() || null;
 
 function cbiSection(title, descrNodes, bodyNodes) {
@@ -92,6 +98,43 @@ function tableTitles(headers) {
 	return E('tr', { 'class': 'tr table-titles' }, headers.map(function(h) {
 		return E('th', { 'class': 'th' }, [ h ]);
 	}));
+}
+
+function fanEnableModeLabel(mode) {
+	var labels = {
+		'0': _('0 - hard off'),
+		'1': _('1 - automatic/thermal idle'),
+		'2': _('2 - manual PWM'),
+		'3': _('3 - off while idle')
+	};
+	var key = mode != null ? String(mode) : '';
+	return labels[key] || (key || _('unknown'));
+}
+
+function fanBoardInfoBlock(fan) {
+	var info = (((fan || {}).diagnostics || {}).board_info) || {};
+	var modes = info.enable_modes || {};
+	var rows = [
+		[ _('Manual reference'), info.manual || 'OrangePi_CM5_Base_RK3588S_user-manual_v1.3' ],
+		[ _('Fan connector'), info.connector || _('5V 2-pin 1.25mm fan socket') ],
+		[ _('Board control'), info.control || _('PWM speed and switch control') ],
+		[ _('Device tree'), '%s, %s'.format(info.dts_node || '/fan compatible=pwm-fan', info.pwm || 'PWM3') ],
+		[ _('PWM period'), info.period_ns ? _('%d ns').format(info.period_ns) : _('unknown') ],
+		[ _('RPM feedback'), info.tachometer || _('not exposed by the 2-pin connector') ],
+		[ _('pwm1_enable=0'), modes['0'] || _('hard off') ],
+		[ _('pwm1_enable=1'), modes['1'] || _('automatic/thermal idle') ],
+		[ _('pwm1_enable=2'), modes['2'] || _('manual PWM') ]
+	];
+
+	return E('table', { 'class': 'table' }, [
+		tableTitles([ _('Property'), _('Value') ]),
+		E('tbody', {}, rows.map(function(row) {
+			return E('tr', { 'class': 'tr' }, [
+				E('td', { 'class': 'td' }, [ row[0] ]),
+				E('td', { 'class': 'td' }, [ row[1] ])
+			]);
+		}))
+	]);
 }
 
 function fanMetaBlock(fan) {
@@ -135,12 +178,17 @@ function fanMetaBlock(fan) {
 			])
 		]);
 	}
-	return E('p', {}, [
-		_('PWM: %s, control: %s, RPM: %s').format(
-			fan.pwm1 != null ? fan.pwm1 : '—',
-			fan.pwm1_enable != null ? fan.pwm1_enable : '—',
-			fan.rpm != null && fan.rpm !== '' ? fan.rpm : _('n/a')
-		)
+	return E('div', {}, [
+		E('p', {}, [
+			_('PWM: %s, control: %s, RPM: %s').format(
+				fan.pwm1 != null ? fan.pwm1 : '—',
+				fanEnableModeLabel(fan.pwm1_enable),
+				fan.rpm != null && fan.rpm !== '' ? fan.rpm : _('n/a')
+			)
+		]),
+		E('p', { 'class': 'cbi-section-descr' }, [
+			_('The Orange Pi CM5 Base fan connector is a 2-wire 5V PWM-controlled output, so no tachometer/RPM input is expected.')
+		])
 	]);
 }
 
@@ -384,6 +432,21 @@ return view.extend({
 		}, this));
 	},
 
+	handleFanTest: function(pwm) {
+		return callFanTest(pwm).then(L.bind(function(r) {
+			if (r.error) {
+				ui.addNotification(null, E('p', {}, [ '%s: %s'.format(r.error, r.message || '') ]), 'error');
+				return;
+			}
+			ui.addNotification(null, E('p', {}, [
+				pwm > 0
+					? _('Fan test set manual PWM to %d. If the fan still does not spin, check fan polarity, connector seating, and whether this is a 5V 2-wire fan.').format(pwm)
+					: _('Fan test stopped the fan output.')
+			]), pwm > 0 ? 'warning' : 'info');
+			return this.handleFanRefresh();
+		}, this));
+	},
+
 	buildFanTab: function(fan) {
 		fan = fan || {};
 		var pwmVal = fan.pwm_uci != null ? fan.pwm_uci : 128;
@@ -429,9 +492,16 @@ return view.extend({
 
 		return E('div', { 'data-tab': 'fan', 'data-tab-title': _('Cooling fan') }, [
 			cbiSection(
+				_('Board wiring'),
+				[
+					_('The official Orange Pi CM5 Base manual lists the cooling fan as a 5V 2-pin 1.25mm socket and states that fan speed and switching are controlled through PWM.')
+				],
+				[ fanBoardInfoBlock(fan) ]
+			),
+			cbiSection(
 				_('PWM fan'),
 				[
-					_('PWM-controlled cooling fan (hwmon name %s). On the Orange Pi CM5 Base this is typically tied to PWM3 and the thermal subsystem.').format('pwmfan')
+					_('PWM-controlled cooling fan (hwmon name %s). The generated DTS exposes it as a pwm-fan on PWM3 with thermal cooling levels.').format('pwmfan')
 				],
 				fanSectionBody
 			),
@@ -445,7 +515,19 @@ return view.extend({
 				E('button', {
 					'class': 'btn cbi-button-action',
 					'click': ui.createHandlerFn(this, 'handleFanRefresh')
-				}, _('Refresh readings'))
+				}, _('Refresh readings')),
+				' ',
+				E('button', {
+					'class': 'btn cbi-button-apply',
+					'click': ui.createHandlerFn(this, 'handleFanTest', 255),
+					'disabled': isReadonlyView || !fan.present
+				}, _('Full-speed test')),
+				' ',
+				E('button', {
+					'class': 'btn cbi-button-reset',
+					'click': ui.createHandlerFn(this, 'handleFanTest', 0),
+					'disabled': isReadonlyView || !fan.present
+				}, _('Stop fan'))
 			])
 		]);
 	},

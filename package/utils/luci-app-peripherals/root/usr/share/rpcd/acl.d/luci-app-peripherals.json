@@ -20,7 +20,8 @@
 					"buttonSet",
 					"irMapsSet",
 					"irApply",
-					"fanSet"
+					"fanSet",
+					"fanTest"
 				]
 			},
 			"file": {

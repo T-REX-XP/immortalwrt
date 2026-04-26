@@ -29,10 +29,12 @@ apply_fan() {
 		manual)
 			pwm="$(printf '%s' "$fan_pwm" | tr -dc '0-9')"
 			[ "$pwm" -ge 0 ] 2>/dev/null && [ "$pwm" -le 255 ] || pwm=128
+			# pwm-fan mode 2 keeps both PWM output and the fan supply enabled.
 			[ -w "$dir/pwm1_enable" ] && echo 2 >"$dir/pwm1_enable"
 			echo "$pwm" >"$dir/pwm1"
 			;;
 		auto|*)
+			# pwm-fan mode 1 lets the thermal cooling device enable PWM when needed.
 			[ -w "$dir/pwm1_enable" ] && echo 1 >"$dir/pwm1_enable"
 			;;
 	esac

@@ -155,6 +155,26 @@ function device_tree_model() {
 	return '';
 }
 
+function fan_board_info() {
+	return {
+		board: 'Orange Pi CM5 Base',
+		manual: 'OrangePi_CM5_Base_RK3588S_user-manual_v1.3',
+		connector: '5V 2-pin 1.25mm fan socket',
+		control: 'PWM speed and switch control',
+		dts_node: '/fan compatible=pwm-fan',
+		pwm: 'PWM3, pinctrl pwm3m1_pins',
+		period_ns: 10000,
+		hwmon_name: 'pwmfan',
+		tachometer: 'not exposed by the 2-pin connector',
+		enable_modes: {
+			'0': 'hard off: PWM disabled and fan supply disabled',
+			'1': 'automatic/thermal: PWM disabled at idle, supply kept enabled',
+			'2': 'manual PWM: PWM enabled and fan supply enabled',
+			'3': 'off with supply disabled when idle'
+		}
+	};
+}
+
 function fan_diag(base, procset) {
 	const mod_r = kernel_release_for_modules();
 	const lib_path = length(mod_r) ? `/lib/modules/${mod_r}` : '/lib/modules';
@@ -165,7 +185,8 @@ function fan_diag(base, procset) {
 		autoload: !!access('/etc/modules.d/60-hwmon-pwmfan'),
 		dt_pwm_fan: dt_has_pwm_fan(),
 		device_tree_model: device_tree_model(),
-		path: base || ''
+		path: base || '',
+		board_info: fan_board_info()
 	};
 }
 
@@ -183,10 +204,7 @@ function clamp_pwm(v) {
 	return n;
 }
 
-/*
- * pwm-fan hwmon: name "pwmfan". pwm1_enable uses driver enums (see pwm-fan.c):
- * 0 off, 1 default/thermal-friendly (pwm_disable_reg_enable), 2 full PWM path (manual).
- */
+/* pwm-fan hwmon: 0 hard-off, 1 automatic/thermal idle, 2 manual PWM. */
 function fan_apply_hw(base, mode, pwmval) {
 	if (!base)
 		return { error: 'no_fan' };
@@ -444,6 +462,18 @@ const methods = {
 			uci_set_opt('fan_pwm', `${pwmv}`);
 			let base = find_fan_hwmon();
 			return fan_apply_hw(base, mode, pwmv);
+		}
+	},
+
+	fanTest: {
+		args: { pwm: 'pwm' },
+		call: function(req) {
+			let pwmv = clamp_pwm(req.args?.pwm != null ? req.args.pwm : '255');
+			let base = find_fan_hwmon();
+			let res = fan_apply_hw(base, pwmv > 0 ? 'manual' : 'off', pwmv);
+			if (res.error)
+				return res;
+			return { ok: true, pwm: pwmv, path: base || '' };
 		}
 	}
 };
