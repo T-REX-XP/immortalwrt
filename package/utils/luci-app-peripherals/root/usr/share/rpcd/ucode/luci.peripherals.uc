@@ -9,14 +9,16 @@ const RC_MAPS = '/etc/rc_maps.cfg';
 const RC_KEYMAPS = '/etc/rc_keymaps';
 const IR_KEYTABLE = '/usr/bin/ir-keytable';
 const MAX_SCRIPT = 131072;
+const MAX_DEBUG_REPORT = 65536;
 
 const UCI_PKG = 'luci_peripherals';
 const UCI_SEC = 'peripherals';
 
 /* Names as in /proc/modules or /sys/module/<name> (underscores). */
 const DIAG_MODULES = [
-	{ module: 'rc_core', label: 'RC core (kmod-multimedia-input)', optional: false },
-	{ module: 'gpio_ir_recv', label: 'GPIO IR receiver (kmod-ir-gpio-cir)', optional: false },
+	{ module: 'rc_core', label: 'RC core for external IR receivers (kmod-multimedia-input)', optional: true },
+	{ module: 'gpio_ir_recv', label: 'GPIO IR receiver for external receivers (kmod-ir-gpio-cir)', optional: true },
+	{ module: 'rockchip_pwm_capture', label: 'Rockchip PWM capture support for onboard IR diagnostics', optional: true },
 	{ module: 'pwm_fan', label: 'PWM fan hwmon (kmod-hwmon-pwmfan)', optional: true },
 	{ module: 'gpio_button_hotplug', label: 'GPIO button hotplug (/etc/rc.button)', optional: true },
 	{ module: 'gpio_keys', label: 'GPIO keys (polled)', optional: true }
@@ -175,6 +177,18 @@ function fan_board_info() {
 	};
 }
 
+function ir_board_info() {
+	return {
+		board: 'Orange Pi CM5 Base',
+		manual: 'OrangePi_CM5_Base_RK3588S_user-manual_v1.3',
+		onboard: 'Infrared receiver',
+		implementation: 'PWM input capture',
+		rc_device: 'not exposed as /sys/class/rc/rc* by the current upstream RK3588 PWM/IR binding',
+		default_support: 'v4l-utils keymap editing for external RC devices plus onboard PWM/counter diagnostics',
+		external_receiver: 'gpio-ir-receiver overlays or device-tree nodes still use rc-core and /etc/rc_maps.cfg'
+	};
+}
+
 function fan_diag(base, procset) {
 	const mod_r = kernel_release_for_modules();
 	const lib_path = length(mod_r) ? `/lib/modules/${mod_r}` : '/lib/modules';
@@ -219,9 +233,9 @@ function fan_apply_hw(base, mode, pwmval) {
 	}
 	if (mode == 'manual') {
 		try {
+			writefile(`${base}/pwm1`, `${pwmval}\n`);
 			if (access(`${base}/pwm1_enable`))
 				writefile(`${base}/pwm1_enable`, '2\n');
-			writefile(`${base}/pwm1`, `${pwmval}\n`);
 		} catch (e) {
 			return { error: 'fan_manual', message: `${e}` };
 		}
@@ -236,6 +250,41 @@ function fan_apply_hw(base, mode, pwmval) {
 	return { ok: true };
 }
 
+function list_counter_devices() {
+	let devices = [];
+	try {
+		let list = lsdir('/sys/bus/counter/devices');
+		for (let i = 0; i < length(list); i++) {
+			let n = list[i];
+			if (!match(n, /^counter[0-9]+$/))
+				continue;
+			let p = `/sys/bus/counter/devices/${n}`;
+			let counts = [];
+			try {
+				let files = lsdir(p);
+				for (let j = 0; j < length(files); j++) {
+					let f = files[j];
+					if (!match(f, /^count[0-9]+$/))
+						continue;
+					push(counts, {
+						id: f,
+						name: read_optional(`${p}/${f}/name`),
+						count: read_optional(`${p}/${f}/count`),
+						enable: read_optional(`${p}/${f}/enable`)
+					});
+				}
+			} catch (e2) {}
+			push(devices, {
+				id: n,
+				path: p,
+				name: read_optional(`${p}/name`),
+				counts
+			});
+		}
+	} catch (e) {}
+	return devices;
+}
+
 function append_line(lines, text) {
 	push(lines, text != null ? `${text}` : '');
 }
@@ -244,6 +293,13 @@ function append_block(lines, title, body) {
 	append_line(lines, '');
 	append_line(lines, `## ${title}`);
 	append_line(lines, length(trim(body || '')) ? trim(body) : '(empty)');
+}
+
+function limit_text(text, max) {
+	text = `${text || ''}`;
+	if (length(text) <= max)
+		return text;
+	return `${substr(text, 0, max)}\n... truncated ${length(text) - max} bytes ...`;
 }
 
 function read_optional(path) {
@@ -261,7 +317,7 @@ function run_cmd(cmd) {
 	let code = p.close();
 	if (code != 0 && !length(trim(out)))
 		out = `exit code ${code}`;
-	return trim(out);
+	return limit_text(trim(out), 12000);
 }
 
 function debug_report() {
@@ -286,6 +342,16 @@ function debug_report() {
 		fan_board_info().period_ns,
 		fan_board_info().tachometer
 	));
+	append_block(lines, 'Board IR reference', sprintf(
+		'board=%s\nmanual=%s\nonboard=%s\nimplementation=%s\nrc_device=%s\ndefault_support=%s\nexternal_receiver=%s',
+		ir_board_info().board,
+		ir_board_info().manual,
+		ir_board_info().onboard,
+		ir_board_info().implementation,
+		ir_board_info().rc_device,
+		ir_board_info().default_support,
+		ir_board_info().external_receiver
+	));
 
 	append_block(lines, 'UCI peripherals config', run_cmd(`uci -q show ${UCI_PKG}`));
 	append_block(lines, 'Button scripts', run_cmd(`ls -la ${BTN_DIR}; for f in ${BTN_DIR}/*; do [ -f "$f" ] || continue; echo "--- $f"; sed -n '1,120p' "$f"; done`));
@@ -295,7 +361,7 @@ function debug_report() {
 		module_state('gpio_keys', pm.set),
 		pm.count
 	));
-	append_block(lines, 'GPIO key device tree hints', run_cmd("for d in /proc/device-tree/gpio-keys* /proc/device-tree/*/gpio-keys*; do [ -e \"$d\" ] || continue; echo \"--- $d\"; find \"$d\" -maxdepth 2 -type f -print 2>/dev/null | while read f; do printf '%s=' \"$f\"; tr '\\0' ' ' <\"$f\" 2>/dev/null; echo; done; done"));
+	append_block(lines, 'GPIO key device tree hints', run_cmd("for d in /proc/device-tree/gpio-keys* /proc/device-tree/*/gpio-keys*; do [ -e \"$d\" ] || continue; echo \"--- $d\"; find \"$d\" -maxdepth 2 -type f -print 2>/dev/null | while read f; do printf '%s: ' \"$f\"; if command -v hexdump >/dev/null 2>&1; then hexdump -v -e '1/1 \"%02x\"' \"$f\" 2>/dev/null; else od -An -tx1 -v \"$f\" 2>/dev/null | tr -d ' \\n'; fi; echo; done; done"));
 
 	append_block(lines, 'Fan hwmon state', sprintf(
 		'present=%s\npath=%s\npwm1=%s\npwm1_enable=%s\nfan1_input=%s\ndt_pwm_fan=%s\nmodule_state=%s\nautoload=%s',
@@ -313,71 +379,16 @@ function debug_report() {
 	append_block(lines, 'Kernel PWM debug', run_cmd("cat /sys/kernel/debug/pwm 2>/dev/null || echo 'debugfs PWM information unavailable; mount debugfs or enable kernel debugfs to inspect raw PWM state'"));
 
 	append_block(lines, 'IR devices', run_cmd("ls -la /sys/class/rc 2>/dev/null; for d in /sys/class/rc/rc*; do [ -e \"$d\" ] || continue; echo \"--- $d\"; cat \"$d/uevent\" 2>/dev/null; done; [ -x /usr/bin/ir-keytable ] && /usr/bin/ir-keytable 2>&1 || true"));
-	append_block(lines, 'IR maps', run_cmd(`ls -la ${RC_KEYMAPS} 2>/dev/null; echo '--- rc_maps.cfg'; sed -n '1,160p' ${RC_MAPS} 2>/dev/null`));
+	append_block(lines, 'IR maps', run_cmd(`ls -la ${RC_KEYMAPS} 2>/dev/null; echo '--- rc_maps.cfg (first 80 lines)'; sed -n '1,80p' ${RC_MAPS} 2>/dev/null`));
+	append_block(lines, 'PWM/counter capture devices', run_cmd("ls -la /sys/bus/counter/devices 2>/dev/null; for d in /sys/bus/counter/devices/counter*; do [ -e \"$d\" ] || continue; echo \"--- $d\"; find \"$d\" -maxdepth 2 -type f -print 2>/dev/null | while read f; do printf '%s=' \"$f\"; cat \"$f\" 2>/dev/null; done; done"));
 
-	append_block(lines, 'Relevant kernel log', run_cmd("dmesg | grep -Ei 'pwm|fan|thermal|gpio|button|keys|ir|rc-core|r8125|eth|gmac' | tail -n 160"));
-	append_block(lines, 'Relevant system log', run_cmd("logread 2>/dev/null | grep -Ei 'button|gpio|fan|pwm|thermal|ir|rc-core|peripheral' | tail -n 160 || true"));
+	append_block(lines, 'Relevant kernel log', run_cmd("dmesg | grep -Ei 'pwm|fan|thermal|gpio|button|keys|ir|rc-core|r8125|eth|gmac' | tail -n 100"));
+	append_block(lines, 'Relevant system log', run_cmd("logread 2>/dev/null | grep -Ei 'button|gpio|fan|pwm|thermal|ir|rc-core|peripheral' | tail -n 100 || true"));
 
-	return join('\n', lines);
-}
-
-function safe_btn_name(name) {
-	return type(name) == 'string' && length(name) <= 64 && match(name, /^[a-zA-Z0-9._-]+$/);
+	return limit_text(join('\n', lines), MAX_DEBUG_REPORT);
 }
 
 const methods = {
-	buttonList: {
-		call: function() {
-			let names = [];
-			try {
-				const list = lsdir(BTN_DIR);
-				for (let i = 0; i < length(list); i++) {
-					const n = list[i];
-					if (safe_btn_name(n))
-						push(names, n);
-				}
-			} catch (e) {
-				return { names: [], error: 'no_button_dir' };
-			}
-			sort(names);
-			return { names };
-		}
-	},
-
-	buttonGet: {
-		args: { name: 'name' },
-		call: function(req) {
-			const name = req.args?.name;
-			if (!safe_btn_name(name))
-				return { error: 'invalid_name' };
-			let content = '';
-			try {
-				content = readfile(`${BTN_DIR}/${name}`);
-			} catch (e) {
-				return { error: 'read_failed', message: `${e}` };
-			}
-			return { name, content };
-		}
-	},
-
-	buttonSet: {
-		args: { name: 'name', content: 'content' },
-		call: function(req) {
-			const name = req.args?.name;
-			const content = req.args?.content;
-			if (!safe_btn_name(name))
-				return { error: 'invalid_name' };
-			if (type(content) != 'string' || length(content) > MAX_SCRIPT)
-				return { error: 'invalid_content' };
-			try {
-				writefile(`${BTN_DIR}/${name}`, content);
-			} catch (e) {
-				return { error: 'write_failed', message: `${e}` };
-			}
-			return { ok: true, name };
-		}
-	},
-
 	irMapsGet: {
 		call: function() {
 			try {
@@ -440,7 +451,12 @@ const methods = {
 				}
 				push(devices, { id: basename(p), uevent: trim(uevent) });
 			}
-			return { devices };
+			return {
+				devices,
+				board_info: ir_board_info(),
+				counter_devices: list_counter_devices(),
+				onboard_rc_expected: false
+			};
 		}
 	},
 
@@ -477,8 +493,6 @@ const methods = {
 				const miss = st == 'missing';
 				if (!row.optional && miss)
 					required_ok = false;
-				if ((row.module == 'rc_core' || row.module == 'gpio_ir_recv') && miss)
-					ir_ok = false;
 				push(items, {
 					module: row.module,
 					label: row.label,
@@ -557,14 +571,17 @@ const methods = {
 	},
 
 	fanTest: {
-		args: { pwm: 'pwm' },
+		args: { pwm: 'pwm', mode: 'mode' },
 		call: function(req) {
 			let pwmv = clamp_pwm(req.args?.pwm != null ? req.args.pwm : '255');
+			let mode = req.args?.mode || (pwmv > 0 ? 'manual' : 'off');
+			if (type(mode) != 'string' || !match(mode, /^(manual|off)$/))
+				return { error: 'invalid_mode' };
 			let base = find_fan_hwmon();
-			let res = fan_apply_hw(base, pwmv > 0 ? 'manual' : 'off', pwmv);
+			let res = fan_apply_hw(base, mode, pwmv);
 			if (res.error)
 				return res;
-			return { ok: true, pwm: pwmv, path: base || '' };
+			return { ok: true, pwm: pwmv, mode, path: base || '' };
 		}
 	}
 };

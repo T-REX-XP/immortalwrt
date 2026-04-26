@@ -3,24 +3,6 @@
 'require rpc';
 'require ui';
 
-var callButtonList = rpc.declare({
-	object: 'luci.peripherals',
-	method: 'buttonList',
-	expect: { names: [] }
-});
-
-var callButtonGet = rpc.declare({
-	object: 'luci.peripherals',
-	method: 'buttonGet',
-	params: ['name']
-});
-
-var callButtonSet = rpc.declare({
-	object: 'luci.peripherals',
-	method: 'buttonSet',
-	params: ['name', 'content']
-});
-
 var callIrMapsGet = rpc.declare({
 	object: 'luci.peripherals',
 	method: 'irMapsGet'
@@ -84,7 +66,7 @@ var callFanSet = rpc.declare({
 var callFanTest = rpc.declare({
 	object: 'luci.peripherals',
 	method: 'fanTest',
-	params: ['pwm']
+	params: ['pwm', 'mode']
 });
 
 var isReadonlyView = !L.hasViewPermission() || null;
@@ -127,6 +109,7 @@ function fanBoardInfoBlock(fan) {
 		[ _('Device tree'), '%s, %s'.format(info.dts_node || '/fan compatible=pwm-fan', info.pwm || 'PWM3') ],
 		[ _('PWM period'), info.period_ns ? _('%d ns').format(info.period_ns) : _('unknown') ],
 		[ _('RPM feedback'), info.tachometer || _('not exposed by the 2-pin connector') ],
+		[ _('Polarity test'), _('Use Full-speed test first. If the fan does not spin, use Inverted full-speed test before changing DTS polarity.') ],
 		[ _('pwm1_enable=0'), modes['0'] || _('hard off') ],
 		[ _('pwm1_enable=1'), modes['1'] || _('automatic/thermal idle') ],
 		[ _('pwm1_enable=2'), modes['2'] || _('manual PWM') ]
@@ -198,44 +181,101 @@ function fanMetaBlock(fan) {
 	]);
 }
 
+function irBoardInfoBlock(irDev) {
+	var info = (irDev || {}).board_info || {};
+	var rows = [
+		[ _('Manual reference'), info.manual || 'OrangePi_CM5_Base_RK3588S_user-manual_v1.3' ],
+		[ _('Onboard hardware'), info.onboard || _('Infrared receiver') ],
+		[ _('Kernel implementation'), info.implementation || _('PWM input capture') ],
+		[ _('RC device status'), info.rc_device || _('not exposed as /sys/class/rc/rc* by the current upstream kernel') ],
+		[ _('Default support'), info.default_support || _('external RC keymap support and onboard diagnostics') ],
+		[ _('External receivers'), info.external_receiver || _('gpio-ir-receiver device tree nodes can create /sys/class/rc/rc* devices') ]
+	];
+
+	return E('table', { 'class': 'table' }, [
+		tableTitles([ _('Property'), _('Value') ]),
+		E('tbody', {}, rows.map(function(row) {
+			return E('tr', { 'class': 'tr' }, [
+				E('td', { 'class': 'td' }, [ row[0] ]),
+				E('td', { 'class': 'td' }, [ row[1] ])
+			]);
+		}))
+	]);
+}
+
+function counterDevicesBlock(irDev) {
+	var counters = (irDev || {}).counter_devices || [];
+	if (!counters.length) {
+		return E('p', { 'class': 'alert-message notice' }, [
+			_('No Linux counter devices were found. This is normal on current RK3588 images unless a future device tree binding exposes the onboard PWM input-capture block.')
+		]);
+	}
+
+	var rows = [];
+	for (var i = 0; i < counters.length; i++) {
+		var c = counters[i];
+		var counts = (c.counts || []).map(function(cnt) {
+			var parts = [ cnt.id || '' ];
+			if (cnt.name)
+				parts.push(cnt.name);
+			if (cnt.count)
+				parts.push(_('count=%s').format(cnt.count));
+			if (cnt.enable)
+				parts.push(_('enable=%s').format(cnt.enable));
+			return parts.join(' - ');
+		}).join('\n');
+		rows.push(E('tr', { 'class': 'tr' }, [
+			E('td', { 'class': 'td' }, [ c.id || '' ]),
+			E('td', { 'class': 'td' }, [ c.name || '—' ]),
+			E('td', { 'class': 'td' }, [ E('code', { 'style': 'white-space:pre-wrap;word-break:break-word;font-size:90%' }, [ counts || '—' ]) ])
+		]));
+	}
+
+	return E('table', { 'class': 'table' }, [
+		tableTitles([ _('Device'), _('Name'), _('Counts') ]),
+		E('tbody', {}, rows)
+	]);
+}
+
+function debugReportPanel() {
+	return E('div', {
+		'id': 'periph-debug-report-wrap',
+		'style': 'margin-top:1em'
+	}, [
+		E('h3', {}, [ _('Debug log') ]),
+		E('p', { 'class': 'cbi-section-descr' }, [
+			_('Click Collect debug log after reproducing the behavior. The report is shown here and includes read-only kernel, device tree, module, fan, button, IR, thermal, and log state.')
+		]),
+		E('div', {
+			'id': 'periph-debug-status',
+			'class': 'alert-message notice',
+			'style': 'margin-bottom:0.5em'
+		}, [ _('No debug log collected yet.') ]),
+		E('textarea', {
+			'id': 'periph-debug-report',
+			'class': 'cbi-input-textarea',
+			'readonly': 'readonly',
+			'placeholder': _('The collected debug log will appear here.'),
+			'style': 'width:100%;min-height:34em;font-family:monospace;white-space:pre'
+		})
+	]);
+}
+
 return view.extend({
 	load: function() {
-		return callButtonList().then(L.bind(function(list) {
-			var names = list.names || [];
-			var listError = list.error || null;
-			if (!names.length) {
-				return Promise.all([
-					Promise.resolve({ names: [], content: '', current: '', listError: listError }),
-					callIrMapsGet(),
-					callIrKeymapsList(),
-					callIrDevices(),
-					callModuleDiagnostics(),
-					callFanGet()
-				]);
-			}
-			return callButtonGet(names[0]).then(L.bind(function(bg) {
-				return Promise.all([
-					Promise.resolve({
-						names: names,
-						content: bg.content != null ? bg.content : '',
-						current: names[0],
-						listError: null
-					}),
-					callIrMapsGet(),
-					callIrKeymapsList(),
-					callIrDevices(),
-					callModuleDiagnostics(),
-					callFanGet()
-				]);
-			}, this));
-		}, this)).then(function(parts) {
+		return Promise.all([
+			callIrMapsGet(),
+			callIrKeymapsList(),
+			callIrDevices(),
+			callModuleDiagnostics(),
+			callFanGet()
+		]).then(function(parts) {
 			return {
-				btn: parts[0],
-				irMaps: parts[1],
-				irKms: parts[2],
-				irDev: parts[3],
-				diags: parts[4],
-				fan: parts[5]
+				irMaps: parts[0],
+				irKms: parts[1],
+				irDev: parts[2],
+				diags: parts[3],
+				fan: parts[4]
 			};
 		});
 	},
@@ -254,13 +294,13 @@ return view.extend({
 			summaryClass = 'alert-message warning';
 
 		if (diags.required_ok && diags.ir_stack_ok && diags.lib_modules_exists)
-			summaryParts.push(_('Kernel modules needed for buttons and IR look acceptable.'));
+			summaryParts.push(_('Peripheral kernel module checks look acceptable.'));
 		if (!diags.lib_modules_exists)
 			summaryParts.push(_('The module directory for this kernel is missing. Loadable modules will not work until kernel and rootfs match (use a full sysupgrade from one build).'));
 		if (!diags.required_ok)
 			summaryParts.push(_('One or more required kernel features are not loaded or built in.'));
 		else if (!diags.ir_stack_ok)
-			summaryParts.push(_('Infrared kernel modules are not loaded. On Orange Pi CM5 Base this does not enable the onboard IR receiver by itself, because the onboard receiver needs PWM input-capture support that is not available in the current upstream kernel binding/driver.'));
+			summaryParts.push(_('External infrared receiver modules are not loaded. The onboard CM5 Base IR receiver is handled separately because it is wired through PWM input capture, not a gpio-ir-receiver RC device.'));
 
 		var summary = E('div', { 'class': summaryClass }, [
 			E('strong', {}, [ _('Status') ]),
@@ -350,21 +390,7 @@ return view.extend({
 					'click': ui.createHandlerFn(this, 'handleDebugReport')
 				}, _('Collect debug log'))
 			]),
-			E('div', {
-				'id': 'periph-debug-report-wrap',
-				'style': 'display:none;margin-top:1em'
-			}, [
-				E('h3', {}, [ _('Debug log') ]),
-				E('p', { 'class': 'cbi-section-descr' }, [
-					_('Copy this report after reproducing the behavior. It includes read-only kernel, device tree, module, fan, button, IR, thermal, and log state.')
-				]),
-				E('textarea', {
-					'id': 'periph-debug-report',
-					'class': 'cbi-input-textarea',
-					'readonly': 'readonly',
-					'style': 'width:100%;min-height:34em;font-family:monospace;white-space:pre'
-				})
-			])
+			debugReportPanel()
 		]);
 	},
 
@@ -383,48 +409,40 @@ return view.extend({
 	handleDebugReport: function() {
 		var wrap = document.getElementById('periph-debug-report-wrap');
 		var ta = document.getElementById('periph-debug-report');
-		if (wrap)
-			wrap.style.display = '';
+		var status = document.getElementById('periph-debug-status');
+		if (status) {
+			status.className = 'alert-message notice';
+			status.textContent = _('Collecting debug log...');
+		}
 		if (ta)
 			ta.value = _('Collecting debug log...');
 
 		return callDebugReport().then(function(r) {
+			var report = r && r.report ? String(r.report) : '';
 			if (ta) {
-				ta.value = r.report || '';
+				ta.value = report || _('Debug RPC returned an empty report.');
 				ta.focus();
 				ta.select();
 			}
+			if (status) {
+				status.className = report ? 'alert-message success' : 'alert-message warning';
+				status.textContent = report
+					? _('Debug log collected (%d characters). Copy it from the text area below.').format(report.length)
+					: _('Debug RPC returned an empty report. Check browser console or rpcd logs.');
+			}
+			if (wrap && wrap.scrollIntoView)
+				wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
 			ui.addNotification(null, E('p', {}, [ _('Debug log collected. Copy it from the text area and include it with the behavior description.') ]), 'info');
 		}).catch(function(e) {
 			if (ta)
-				ta.value = '';
+				ta.value = _('Could not collect debug log: %s').format(e);
+			if (status) {
+				status.className = 'alert-message error';
+				status.textContent = _('Could not collect debug log: %s').format(e);
+			}
+			if (wrap && wrap.scrollIntoView)
+				wrap.scrollIntoView({ behavior: 'smooth', block: 'start' });
 			ui.addNotification(null, E('p', {}, [ _('Could not collect debug log: %s').format(e) ]), 'error');
-		});
-	},
-
-	handleBtnSave: function() {
-		var sel = document.getElementById('periph-btn-sel');
-		var ta = document.querySelector('#periph-btn-ta');
-		if (!sel || !ta || ta.disabled)
-			return Promise.resolve();
-		var name = sel.value;
-		var content = String(ta.value || '').replace(/\r\n/g, '\n');
-		return callButtonSet(name, content).then(L.bind(function(r) {
-			if (r.error)
-				ui.addNotification(null, E('p', {}, [ '%s'.format(r.error) ]), 'error');
-			else
-				ui.addNotification(null, E('p', {}, [ _('The script "%s" has been saved.').format(name) ]), 'info');
-		}, this));
-	},
-
-	handleBtnChange: function(ev) {
-		var n = ev.target.value;
-		if (!n)
-			return;
-		return callButtonGet(n).then(function(r) {
-			var ta = document.querySelector('#periph-btn-ta');
-			if (ta)
-				ta.value = r.content != null ? r.content : '';
 		});
 	},
 
@@ -480,17 +498,23 @@ return view.extend({
 		}, this));
 	},
 
-	handleFanTest: function(pwm) {
-		return callFanTest(pwm).then(L.bind(function(r) {
+	handleFanTest: function(pwm, mode) {
+		mode = mode || (pwm > 0 ? 'manual' : 'off');
+		return callFanTest(pwm, mode).then(L.bind(function(r) {
 			if (r.error) {
 				ui.addNotification(null, E('p', {}, [ '%s: %s'.format(r.error, r.message || '') ]), 'error');
 				return;
 			}
+			var msg;
+			if (mode === 'manual' && pwm === 0)
+				msg = _('Inverted polarity test set manual PWM to 0. If the fan spins now but not at 255, the DTS PWM polarity likely needs to be inverted.');
+			else if (mode === 'manual')
+				msg = _('Fan test set manual PWM to %d. If the fan still does not spin, try Inverted full-speed test and check fan polarity, connector seating, and whether this is a 5V 2-wire fan.').format(pwm);
+			else
+				msg = _('Fan test stopped the fan output.');
 			ui.addNotification(null, E('p', {}, [
-				pwm > 0
-					? _('Fan test set manual PWM to %d. If the fan still does not spin, check fan polarity, connector seating, and whether this is a 5V 2-wire fan.').format(pwm)
-					: _('Fan test stopped the fan output.')
-			]), pwm > 0 ? 'warning' : 'info');
+				msg
+			]), mode === 'manual' ? 'warning' : 'info');
 			return this.handleFanRefresh();
 		}, this));
 	},
@@ -567,13 +591,19 @@ return view.extend({
 				' ',
 				E('button', {
 					'class': 'btn cbi-button-apply',
-					'click': ui.createHandlerFn(this, 'handleFanTest', 255),
+					'click': ui.createHandlerFn(this, 'handleFanTest', 255, 'manual'),
 					'disabled': isReadonlyView || !fan.present
 				}, _('Full-speed test')),
 				' ',
 				E('button', {
+					'class': 'btn cbi-button-apply',
+					'click': ui.createHandlerFn(this, 'handleFanTest', 0, 'manual'),
+					'disabled': isReadonlyView || !fan.present
+				}, _('Inverted full-speed test')),
+				' ',
+				E('button', {
 					'class': 'btn cbi-button-reset',
-					'click': ui.createHandlerFn(this, 'handleFanTest', 0),
+					'click': ui.createHandlerFn(this, 'handleFanTest', 0, 'off'),
 					'disabled': isReadonlyView || !fan.present
 				}, _('Stop fan'))
 			])
@@ -581,30 +611,11 @@ return view.extend({
 	},
 
 	render: function(data) {
-		var btn = data.btn || { names: [], content: '', current: '', listError: null };
 		var irMaps = data.irMaps || { content: '' };
 		var irKms = data.irKms || { files: [] };
 		var irDev = data.irDev || { devices: [] };
 		var diags = data.diags || {};
 		var fan = data.fan || {};
-
-		var btnSel = E('select', {
-			'id': 'periph-btn-sel',
-			'disabled': isReadonlyView || !btn.names.length,
-			'change': ui.createHandlerFn(this, 'handleBtnChange')
-		});
-		for (var i = 0; i < btn.names.length; i++)
-			btnSel.appendChild(E('option', {
-				'value': btn.names[i],
-				'selected': btn.names[i] === btn.current
-			}, [ btn.names[i] ]));
-
-		var btnTa = E('textarea', {
-			'id': 'periph-btn-ta',
-			'class': 'cbi-input-textarea',
-			'style': 'width:100%;min-height:16em;font-family:monospace',
-			'disabled': isReadonlyView
-		}, [ btn.content || '' ]);
 
 		var devRows = (irDev.devices || []).map(function(d) {
 			return E('tr', { 'class': 'tr' }, [
@@ -629,58 +640,27 @@ return view.extend({
 			'disabled': isReadonlyView
 		}, [ irMaps.content != null ? irMaps.content : '' ]);
 
-		var tabButtons = E('div', { 'data-tab': 'buttons', 'data-tab-title': _('Buttons') }, [
-			cbiSection(
-				_('GPIO button scripts'),
-				[
-					_('Scripts in %s are run when GPIO keys trigger hotplug events (for example reset or WPS). Keep an SSH session open while editing.').format('/etc/rc.button/')
-				],
-				[
-					!btn.names.length ? E('p', { 'class': 'alert-message warning' }, [
-						btn.listError === 'no_button_dir'
-							? _('%s is missing or not readable (verify with %s). Recreate it or fix permissions; stock OpenWrt installs scripts from %s.').format(
-								'/etc/rc.button/',
-								'ls -la /etc/rc.button/',
-								'base-files')
-							: _('No editable script names under %s (folder empty, or names not matching %s). Check with %s. Physical buttons also need %s loaded and %s keys in the device tree with a %s the hotplug driver supports.').format(
-								'/etc/rc.button/',
-								'[a-zA-Z0-9._-]+',
-								'ls -la /etc/rc.button/',
-								'gpio-button-hotplug',
-								'gpio-keys',
-								'linux,code')
-					]) : '',
-					E('div', { 'class': 'cbi-section-node' }, [
-						E('div', { 'class': 'cbi-value' }, [
-							E('label', { 'class': 'cbi-value-title' }, [ _('Script file') ]),
-							E('div', { 'class': 'cbi-value-field' }, [ btnSel ])
-						]),
-						E('div', { 'class': 'cbi-value' }, [
-							E('label', { 'class': 'cbi-value-title' }, [ _('Contents') ]),
-							E('div', { 'class': 'cbi-value-field' }, [ btnTa ])
-						])
-					]),
-					E('div', { 'class': 'cbi-page-actions' }, [
-						E('button', {
-							'class': 'btn cbi-button-save',
-							'click': ui.createHandlerFn(this, 'handleBtnSave'),
-							'disabled': isReadonlyView || !btn.names.length
-						}, _('Save'))
-					])
-				].filter(Boolean)
-			)
-		]);
-
 		var tabIr = E('div', { 'data-tab': 'ir', 'data-tab-title': _('Infrared') }, [
-			E('p', { 'class': 'alert-message notice' }, [
-				_('Orange Pi CM5 Base has onboard IR hardware, but the current upstream kernel cannot expose it as an RC device yet because the receiver is wired through PWM input capture. Keymap editing remains available for future support or for external receivers that create %s entries.').format('/sys/class/rc/rc*')
-			]),
 			cbiSection(
-				_('RC core'),
-				[ _('Kernel remote control devices (%s).').format('/sys/class/rc/') ],
+				_('Onboard IR receiver'),
+				[
+					_('The CM5 Base includes an onboard infrared receiver. It is wired through PWM input capture, so it is not expected to appear as a normal RC-core device under %s on the current upstream kernel.').format('/sys/class/rc/')
+				],
+				[ irBoardInfoBlock(irDev) ]
+			),
+			cbiSection(
+				_('PWM/counter capture diagnostics'),
+				[
+					_('Future RK3588 PWM input-capture support should expose raw capture state through Linux counter devices. This section reports those devices when the kernel and device tree expose them.')
+				],
+				[ counterDevicesBlock(irDev) ]
+			),
+			cbiSection(
+				_('External RC devices'),
+				[ _('Kernel remote control devices (%s) from external gpio-ir-receiver hardware or future compatible device-tree support.').format('/sys/class/rc/') ],
 				[
 					(irDev.devices || []).length ? devTable : E('p', { 'class': 'alert-message notice' }, [
-						_('No RC devices were found. This is expected for the onboard CM5 Base IR receiver with the current kernel. If you attach a separate supported receiver, verify its device tree/overlay and that %s and %s are loaded.').format('kmod-multimedia-input', 'kmod-ir-gpio-cir')
+						_('No external RC devices were found. This is not an error for the onboard CM5 Base IR receiver. If you attach a separate supported receiver, verify its device tree/overlay and that %s and %s are installed.').format('kmod-multimedia-input', 'kmod-ir-gpio-cir')
 					])
 				]
 			),
@@ -723,10 +703,9 @@ return view.extend({
 		var viewRoot = E([], [
 			E('h2', {}, [ _('Peripherals') ]),
 			E('p', { 'class': 'cbi-map-descr' }, [
-				_('Manage hardware buttons, infrared reception, the PWM cooling fan, and kernel module diagnostics.')
+				_('Manage infrared reception, the PWM cooling fan, and kernel module diagnostics. Button script editing is handled by the dedicated Buttons app.')
 			]),
 			E('div', {}, [
-				tabButtons,
 				tabIr,
 				this.buildFanTab(fan),
 				E('div', { 'data-tab': 'diagnostics', 'data-tab-title': _('Diagnostics') }, [

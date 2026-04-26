@@ -1,13 +1,15 @@
 # SPDX-License-Identifier: Apache-2.0
 #
-# LuCI + rpcd/ucode backend for GPIO button scripts and IR remote (RC core).
+# LuCI + rpcd/ucode backend for IR remote, PWM fan, and peripheral diagnostics.
 
 include $(TOPDIR)/rules.mk
 
-LUCI_TITLE:=Peripherals (buttons, IR, fan)
+LUCI_TITLE:=Peripherals (IR, fan, diagnostics)
 # luci-base pulls rpcd-mod-ucode, ucode-mod-fs, ...; v4l-utils provides ir-keytable for IR Apply.
-LUCI_DEPENDS:=+luci-base +v4l-utils +kmod-gpio-button-hotplug +kmod-ir-gpio-cir +kmod-hwmon-pwmfan
+LUCI_DEPENDS:=+luci-base +v4l-utils +kmod-ir-gpio-cir +kmod-hwmon-pwmfan
 LUCI_PKGARCH:=all
+PKG_VERSION:=2026.04.26
+PKG_RELEASE:=2
 
 PKG_LICENSE:=Apache-2.0
 PKG_MAINTAINER:=Immortal OPI CM5 overlay

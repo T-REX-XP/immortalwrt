@@ -1,11 +1,9 @@
 {
 	"luci-app-peripherals": {
-		"description": "Peripherals (GPIO buttons, IR, fan, diagnostics)",
+		"description": "Peripherals (IR, fan, diagnostics)",
 		"read": {
 			"ubus": {
 				"luci.peripherals": [
-					"buttonList",
-					"buttonGet",
 					"irMapsGet",
 					"irKeymapsList",
 					"irDevices",
@@ -18,7 +16,6 @@
 		"write": {
 			"ubus": {
 				"luci.peripherals": [
-					"buttonSet",
 					"irMapsSet",
 					"irApply",
 					"fanSet",
