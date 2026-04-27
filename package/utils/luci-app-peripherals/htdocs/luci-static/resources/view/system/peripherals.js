@@ -58,6 +58,10 @@ var callFanTest = rpc.declare({
 
 var isReadonlyView = !L.hasViewPermission() || null;
 
+function fanControlDisabled(fan) {
+	return !fan || !fan.present;
+}
+
 function rpcData(data, fallback) {
 	if (Array.isArray(data)) {
 		if (data.length > 1 && data[0] === 0 && data[1] != null)
@@ -476,7 +480,7 @@ return view.extend({
 	handleFanApply: function() {
 		var sel = document.getElementById('periph-fan-mode');
 		var rng = document.getElementById('periph-fan-pwm');
-		if (!sel || sel.disabled)
+		if (!sel)
 			return Promise.resolve();
 		var mode = sel.value || 'auto';
 		var pwm = rng ? (parseInt(rng.value, 10) || 0) : 128;
@@ -539,7 +543,7 @@ return view.extend({
 				E('div', { 'class': 'cbi-value-field' }, [
 					E('select', {
 						'id': 'periph-fan-mode',
-						'disabled': isReadonlyView || !fan.present
+						'disabled': fanControlDisabled(fan)
 					}, [
 						E('option', { 'value': 'auto', 'selected': fan.mode === 'auto' }, [ _('Automatic (thermal)') ]),
 						E('option', { 'value': 'manual', 'selected': fan.mode === 'manual' }, [ _('Manual PWM') ]),
@@ -556,7 +560,7 @@ return view.extend({
 						'min': 0,
 						'max': 255,
 						'value': pwmVal,
-						'disabled': isReadonlyView || !fan.present,
+						'disabled': fanControlDisabled(fan),
 						'input': function(ev) {
 							var lbl = document.getElementById('periph-fan-pwm-lbl');
 							if (lbl)
@@ -588,7 +592,7 @@ return view.extend({
 				E('button', {
 					'class': 'btn cbi-button-save',
 					'click': ui.createHandlerFn(this, 'handleFanApply'),
-					'disabled': isReadonlyView || !fan.present
+					'disabled': fanControlDisabled(fan)
 				}, _('Save')),
 				' ',
 				E('button', {
@@ -599,19 +603,19 @@ return view.extend({
 				E('button', {
 					'class': 'btn cbi-button-apply',
 					'click': ui.createHandlerFn(this, 'handleFanTest', 255, 'manual'),
-					'disabled': isReadonlyView || !fan.present
+					'disabled': fanControlDisabled(fan)
 				}, _('Full-speed test')),
 				' ',
 				E('button', {
 					'class': 'btn cbi-button-apply',
 					'click': ui.createHandlerFn(this, 'handleFanTest', 0, 'manual'),
-					'disabled': isReadonlyView || !fan.present
+					'disabled': fanControlDisabled(fan)
 				}, _('Inverted full-speed test')),
 				' ',
 				E('button', {
 					'class': 'btn cbi-button-reset',
 					'click': ui.createHandlerFn(this, 'handleFanTest', 0, 'off'),
-					'disabled': isReadonlyView || !fan.present
+					'disabled': fanControlDisabled(fan)
 				}, _('Stop fan'))
 			])
 		]);
