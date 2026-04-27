@@ -31,30 +31,17 @@ var callIrApply = rpc.declare({
 
 var callModuleDiagnostics = rpc.declare({
 	object: 'luci.peripherals',
-	method: 'moduleDiagnostics',
-	expect: {
-		uname_r: '',
-		modules_release: '',
-		lib_modules_path: '',
-		lib_modules_exists: false,
-		proc_modules_count: 0,
-		modules_dep: false,
-		items: [],
-		required_ok: false,
-		ir_stack_ok: false
-	}
+	method: 'moduleDiagnostics'
 });
 
 var callDebugReport = rpc.declare({
 	object: 'luci.peripherals',
-	method: 'debugReport',
-	expect: { report: '' }
+	method: 'debugReport'
 });
 
 var callFanGet = rpc.declare({
 	object: 'luci.peripherals',
-	method: 'fanGet',
-	expect: { present: false, mode: 'auto', pwm_uci: 128 }
+	method: 'fanGet'
 });
 
 var callFanSet = rpc.declare({
