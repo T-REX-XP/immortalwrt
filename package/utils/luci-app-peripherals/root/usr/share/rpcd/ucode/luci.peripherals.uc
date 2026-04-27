@@ -2,7 +2,7 @@
 
 'use strict';
 
-import { readfile, writefile, popen, lsdir, basename, access } from 'fs';
+import { readfile, writefile, popen, lsdir, basename } from 'fs';
 
 const BTN_DIR = '/etc/rc.button';
 const RC_MAPS = '/etc/rc_maps.cfg';
@@ -13,6 +13,7 @@ const MAX_DEBUG_REPORT = 65536;
 
 const UCI_PKG = 'luci_peripherals';
 const UCI_SEC = 'peripherals';
+const MODULE_ROOTS = [ '/lib/modules', '/usr/lib/modules' ];
 
 /* Names as in /proc/modules or /sys/module/<name> (underscores). */
 const DIAG_MODULES = [
@@ -46,33 +47,86 @@ function uci_set_opt(option, value) {
 }
 
 function uname_release() {
-	let p = popen('uname -r 2>/dev/null', 'r');
-	const raw = trim(p ? (p.read('all') || '') : '');
-	if (p)
-		p.close();
-	return raw;
+	try {
+		let rel = trim(readfile('/proc/sys/kernel/osrelease'));
+		if (length(rel))
+			return rel;
+	} catch (e) {}
+	try {
+		let rel = trim(readfile('/proc/version'));
+		let m = match(rel, /Linux version ([^ ]+)/);
+		if (m && length(m) > 1)
+			return m[1];
+	} catch (e2) {}
+	return '';
 }
 
-/* Prefer uname -r; if empty, use a single versioned tree under /lib/modules (kernel/rootfs skew diagnostics). */
-function kernel_release_for_modules() {
-	let ur = uname_release();
-	if (length(ur))
-		return ur;
+function path_exists(path) {
 	try {
-		let list = lsdir('/lib/modules');
-		let fallback = '';
-		for (let i = 0; i < length(list); i++) {
-			let n = list[i];
-			if (!length(n) || n == '.' || n == '..')
-				continue;
-			if (access(`/lib/modules/${n}/modules.dep`))
-				return n;
-			if (!length(fallback))
-				fallback = n;
-		}
-		return fallback;
+		readfile(path);
+		return true;
 	} catch (e) {}
+	try {
+		lsdir(path);
+		return true;
+	} catch (e2) {}
+	return false;
+}
+
+function dir_exists(path) {
+	try {
+		lsdir(path);
+		return true;
+	} catch (e) {}
+	return false;
+}
+
+function module_root_for_release(rel) {
+	if (!length(rel))
+		return '';
+	for (let i = 0; i < length(MODULE_ROOTS); i++) {
+		let p = `${MODULE_ROOTS[i]}/${rel}`;
+		if (dir_exists(p))
+			return p;
+	}
 	return '';
+}
+
+function module_tree_info() {
+	let rel = uname_release();
+	let root = module_root_for_release(rel);
+	let fallback = '';
+
+	for (let r = 0; r < length(MODULE_ROOTS); r++) {
+		try {
+			let list = lsdir(MODULE_ROOTS[r]);
+			for (let i = 0; i < length(list); i++) {
+				let n = list[i];
+				if (!length(n) || n == '.' || n == '..')
+					continue;
+				let p = `${MODULE_ROOTS[r]}/${n}`;
+				if (!dir_exists(p))
+					continue;
+				if (!length(root) && length(rel) && n == rel)
+					root = p;
+				if (path_exists(`${p}/modules.dep`))
+					return { release: n, path: p, exists: true, modules_dep: true };
+				if (!length(fallback))
+					fallback = p;
+			}
+		} catch (e) {}
+	}
+
+	if (length(root))
+		return { release: rel, path: root, exists: true, modules_dep: path_exists(`${root}/modules.dep`) };
+	if (length(fallback))
+		return { release: basename(fallback), path: fallback, exists: true, modules_dep: path_exists(`${fallback}/modules.dep`) };
+	return { release: rel, path: length(rel) ? `/lib/modules/${rel}` : '/lib/modules', exists: false, modules_dep: false };
+}
+
+/* Prefer the running kernel release; fall back to the single available module tree for skew diagnostics. */
+function kernel_release_for_modules() {
+	return module_tree_info().release;
 }
 
 function proc_modules_set() {
@@ -91,14 +145,25 @@ function proc_modules_set() {
 				count++;
 			}
 		}
-	} catch (e) {}
+	} catch (e) {
+		try {
+			const list = lsdir('/sys/module');
+			for (let i = 0; i < length(list); i++) {
+				const n = list[i];
+				if (!length(n) || n == '.' || n == '..')
+					continue;
+				set[n] = true;
+				count++;
+			}
+		} catch (e2) {}
+	}
 	return { set, count };
 }
 
 function module_state(name, procset) {
 	if (procset[name])
 		return 'loaded';
-	if (access(`/sys/module/${name}`))
+	if (dir_exists(`/sys/module/${name}`))
 		return 'builtin';
 	return 'missing';
 }
@@ -190,13 +255,13 @@ function ir_board_info() {
 }
 
 function fan_diag(base, procset) {
-	const mod_r = kernel_release_for_modules();
-	const lib_path = length(mod_r) ? `/lib/modules/${mod_r}` : '/lib/modules';
+	const mt = module_tree_info();
+	const lib_path = mt.path;
 	return {
 		hwmon: list_hwmon(),
 		module_state: module_state('pwm_fan', procset),
-		module_file: !!access(`${lib_path}/pwm-fan.ko`),
-		autoload: !!access('/etc/modules.d/60-hwmon-pwmfan'),
+		module_file: path_exists(`${lib_path}/pwm-fan.ko`),
+		autoload: path_exists('/etc/modules.d/60-hwmon-pwmfan'),
 		dt_pwm_fan: dt_has_pwm_fan(),
 		device_tree_model: device_tree_model(),
 		path: base || '',
@@ -224,7 +289,7 @@ function fan_apply_hw(base, mode, pwmval) {
 		return { error: 'no_fan' };
 	if (mode == 'off') {
 		try {
-			if (access(`${base}/pwm1_enable`))
+			if (path_exists(`${base}/pwm1_enable`))
 				writefile(`${base}/pwm1_enable`, '0\n');
 		} catch (e) {
 			return { error: 'fan_off', message: `${e}` };
@@ -234,7 +299,7 @@ function fan_apply_hw(base, mode, pwmval) {
 	if (mode == 'manual') {
 		try {
 			writefile(`${base}/pwm1`, `${pwmval}\n`);
-			if (access(`${base}/pwm1_enable`))
+			if (path_exists(`${base}/pwm1_enable`))
 				writefile(`${base}/pwm1_enable`, '2\n');
 		} catch (e) {
 			return { error: 'fan_manual', message: `${e}` };
@@ -242,7 +307,7 @@ function fan_apply_hw(base, mode, pwmval) {
 		return { ok: true };
 	}
 	try {
-		if (access(`${base}/pwm1_enable`))
+		if (path_exists(`${base}/pwm1_enable`))
 			writefile(`${base}/pwm1_enable`, '1\n');
 	} catch (e) {
 		return { error: 'fan_auto', message: `${e}` };
@@ -372,7 +437,7 @@ function debug_report() {
 		base ? read_optional(`${base}/fan1_input`) : '',
 		dt_has_pwm_fan() ? 'yes' : 'no',
 		module_state('pwm_fan', pm.set),
-		access('/etc/modules.d/60-hwmon-pwmfan') ? 'yes' : 'no'
+		path_exists('/etc/modules.d/60-hwmon-pwmfan') ? 'yes' : 'no'
 	));
 	append_block(lines, 'All hwmon devices', run_cmd("for d in /sys/class/hwmon/hwmon*; do [ -e \"$d\" ] || continue; printf '%s name=' \"$d\"; cat \"$d/name\" 2>/dev/null; for f in \"$d\"/pwm* \"$d\"/fan*_input \"$d\"/temp*_input; do [ -e \"$f\" ] && printf '  %s=%s\\n' \"$f\" \"$(cat \"$f\" 2>/dev/null)\"; done; done"));
 	append_block(lines, 'Thermal zones', run_cmd("for z in /sys/class/thermal/thermal_zone*; do [ -e \"$z\" ] || continue; printf '%s type=%s temp=%s\\n' \"$z\" \"$(cat \"$z/type\" 2>/dev/null)\" \"$(cat \"$z/temp\" 2>/dev/null)\"; done"));
@@ -462,7 +527,7 @@ const methods = {
 
 	irApply: {
 		call: function() {
-			if (!access(IR_KEYTABLE))
+			if (!path_exists(IR_KEYTABLE))
 				return { ok: false, output: 'ir-keytable missing; install v4l-utils' };
 			const proc = popen(`${IR_KEYTABLE} -a 2>&1`, 'r');
 			if (!proc)
@@ -475,14 +540,15 @@ const methods = {
 
 	moduleDiagnostics: {
 		call: function() {
+			const mt = module_tree_info();
 			const uname_r = uname_release();
-			const mod_r = kernel_release_for_modules();
+			const mod_r = mt.release;
 			const pm = proc_modules_set();
 			const procset = pm.set;
 			const proc_count = pm.count;
 
-			const lib_path = length(mod_r) ? `/lib/modules/${mod_r}` : '/lib/modules';
-			const lib_exists = !!access(lib_path);
+			const lib_path = mt.path;
+			const lib_exists = mt.exists;
 			let items = [];
 			let required_ok = true;
 			let ir_ok = true;
@@ -501,7 +567,7 @@ const methods = {
 				});
 			}
 
-			const modules_dep = lib_exists && !!access(`${lib_path}/modules.dep`);
+			const modules_dep = mt.modules_dep;
 
 			return {
 				uname_r,

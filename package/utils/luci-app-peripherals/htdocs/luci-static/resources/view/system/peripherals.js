@@ -71,6 +71,19 @@ var callFanTest = rpc.declare({
 
 var isReadonlyView = !L.hasViewPermission() || null;
 
+function rpcData(data, fallback) {
+	if (Array.isArray(data)) {
+		if (data.length > 1 && data[0] === 0 && data[1] != null)
+			return data[1];
+		if (data.length && data[0] != null && typeof data[0] === 'object')
+			return data[0];
+		return fallback || {};
+	}
+	if (data && data.result != null)
+		return rpcData(data.result, fallback);
+	return data || fallback || {};
+}
+
 function cbiSection(title, descrNodes, bodyNodes) {
 	var parts = [];
 	if (title)
@@ -271,11 +284,11 @@ return view.extend({
 			callFanGet()
 		]).then(function(parts) {
 			return {
-				irMaps: parts[0],
-				irKms: parts[1],
-				irDev: parts[2],
-				diags: parts[3],
-				fan: parts[4]
+				irMaps: rpcData(parts[0], { content: '' }),
+				irKms: rpcData(parts[1], { files: [] }),
+				irDev: rpcData(parts[2], { devices: [] }),
+				diags: rpcData(parts[3], {}),
+				fan: rpcData(parts[4], {})
 			};
 		});
 	},
@@ -396,6 +409,7 @@ return view.extend({
 
 	handleDiagRefresh: function() {
 		return callModuleDiagnostics().then(L.bind(function(d) {
+			d = rpcData(d, {});
 			var root = document.getElementById('periph-diag-root');
 			if (!root || !root.parentNode)
 				return;
@@ -418,6 +432,7 @@ return view.extend({
 			ta.value = _('Collecting debug log...');
 
 		return callDebugReport().then(function(r) {
+			r = rpcData(r, {});
 			var report = r && r.report ? String(r.report) : '';
 			if (ta) {
 				ta.value = report || _('Debug RPC returned an empty report.');
@@ -452,6 +467,7 @@ return view.extend({
 			return Promise.resolve();
 		var content = String(ta.value || '').replace(/\r\n/g, '\n');
 		return callIrMapsSet(content).then(function(r) {
+			r = rpcData(r, {});
 			if (r.error)
 				ui.addNotification(null, E('p', {}, [ '%s'.format(r.error) ]), 'error');
 			else
@@ -461,6 +477,7 @@ return view.extend({
 
 	handleIrApply: function() {
 		return callIrApply().then(function(r) {
+			r = rpcData(r, {});
 			var msg = E('div', {}, [
 				E('p', {}, [ r.ok ? _('The keymaps were applied successfully.') : _('Keymap application reported an error.') ]),
 				r.output ? E('pre', { 'style': 'white-space:pre-wrap;word-break:break-word' }, [ r.output ]) : ''
@@ -481,6 +498,7 @@ return view.extend({
 		if (pwm > 255)
 			pwm = 255;
 		return callFanSet(mode, pwm).then(function(r) {
+			r = rpcData(r, {});
 			if (r.error)
 				ui.addNotification(null, E('p', {}, [ '%s: %s'.format(r.error, r.message || '') ]), 'error');
 			else
@@ -490,6 +508,7 @@ return view.extend({
 
 	handleFanRefresh: function() {
 		return callFanGet().then(L.bind(function(f) {
+			f = rpcData(f, {});
 			var el = document.getElementById('periph-fan-meta');
 			if (!el)
 				return;
@@ -501,6 +520,7 @@ return view.extend({
 	handleFanTest: function(pwm, mode) {
 		mode = mode || (pwm > 0 ? 'manual' : 'off');
 		return callFanTest(pwm, mode).then(L.bind(function(r) {
+			r = rpcData(r, {});
 			if (r.error) {
 				ui.addNotification(null, E('p', {}, [ '%s: %s'.format(r.error, r.message || '') ]), 'error');
 				return;
