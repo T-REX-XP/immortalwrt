@@ -229,8 +229,8 @@ function fan_board_info() {
 		connector: '5V 2-pin 1.25mm fan socket',
 		control: 'PWM speed and switch control',
 		dts_node: '/fan compatible=pwm-fan',
-		pwm: 'PWM3, pinctrl pwm3m1_pins',
-		period_ns: 10000,
+		pwm: 'PWM13, pinctrl pwm13m1_pins',
+		period_ns: 20000000,
 		hwmon_name: 'pwmfan',
 		tachometer: 'not exposed by the 2-pin connector',
 		enable_modes: {

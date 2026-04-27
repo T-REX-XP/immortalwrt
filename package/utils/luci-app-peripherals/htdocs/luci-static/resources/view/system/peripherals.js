@@ -110,7 +110,7 @@ function fanBoardInfoBlock(fan) {
 		[ _('Manual reference'), info.manual || 'OrangePi_CM5_Base_RK3588S_user-manual_v1.3' ],
 		[ _('Fan connector'), info.connector || _('5V 2-pin 1.25mm fan socket') ],
 		[ _('Board control'), info.control || _('PWM speed and switch control') ],
-		[ _('Device tree'), '%s, %s'.format(info.dts_node || '/fan compatible=pwm-fan', info.pwm || 'PWM3') ],
+		[ _('Device tree'), '%s, %s'.format(info.dts_node || '/fan compatible=pwm-fan', info.pwm || 'PWM13') ],
 		[ _('PWM period'), info.period_ns ? _('%d ns').format(info.period_ns) : _('unknown') ],
 		[ _('RPM feedback'), info.tachometer || _('not exposed by the 2-pin connector') ],
 		[ _('Polarity test'), _('Use Full-speed test first. If the fan does not spin, use Inverted full-speed test before changing DTS polarity.') ],
@@ -584,7 +584,7 @@ return view.extend({
 			cbiSection(
 				_('PWM fan'),
 				[
-					_('PWM-controlled cooling fan (hwmon name %s). The generated DTS exposes it as a pwm-fan on PWM3 with thermal cooling levels.').format('pwmfan')
+					_('PWM-controlled cooling fan (hwmon name %s). The generated DTS exposes it as a pwm-fan on PWM13 M1 with thermal cooling levels.').format('pwmfan')
 				],
 				fanSectionBody
 			),
