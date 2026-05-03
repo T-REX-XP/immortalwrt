@@ -495,17 +495,15 @@ function renderOverview(metricsText) {
 
 	return E('div', { 'class': 'cbi-section' }, [
 		E('h3', {}, [ _('Overview') ]),
-		E('p', { 'class': 'cbi-section-descr' }, [
-			overview.hasMetrics
-				? [
-					blockyPill('yes', _('Live')),
-					blockyStatusDetail(_('Summary derived from Blocky Prometheus metrics.'))
-				]
-				: [
-					blockyPill('no', _('Limited')),
-					blockyStatusDetail(_('No metrics were returned. Enable prometheus in the Blocky configuration to populate this section.'))
-				]
-		]),
+		E('p', { 'class': 'cbi-section-descr' }, overview.hasMetrics
+			? [
+				blockyPill('yes', _('Live')),
+				blockyStatusDetail(_('Summary derived from Blocky Prometheus metrics.'))
+			]
+			: [
+				blockyPill('no', _('Limited')),
+				blockyStatusDetail(_('No metrics were returned. Enable prometheus in the Blocky configuration to populate this section.'))
+			]),
 		E('div', { 'class': 'blocky-metric-grid' }, [
 			E('div', { 'class': 'blocky-metric-card', 'style': 'flex:1 1 11em' }, [
 				E('div', { 'class': 'blocky-metric-card-head' }, [
