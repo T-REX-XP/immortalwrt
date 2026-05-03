@@ -58,10 +58,6 @@ var callFanTest = rpc.declare({
 
 var isReadonlyView = !L.hasViewPermission() || null;
 
-function fanControlDisabled(fan) {
-	return !fan || !fan.present;
-}
-
 function rpcData(data, fallback) {
 	if (Array.isArray(data)) {
 		if (data.length > 1 && data[0] === 0 && data[1] != null)
@@ -542,8 +538,7 @@ return view.extend({
 				E('label', { 'class': 'cbi-value-title' }, [ _('Mode') ]),
 				E('div', { 'class': 'cbi-value-field' }, [
 					E('select', {
-						'id': 'periph-fan-mode',
-						'disabled': fanControlDisabled(fan)
+						'id': 'periph-fan-mode'
 					}, [
 						E('option', { 'value': 'auto', 'selected': fan.mode === 'auto' }, [ _('Automatic (thermal)') ]),
 						E('option', { 'value': 'manual', 'selected': fan.mode === 'manual' }, [ _('Manual PWM') ]),
@@ -560,7 +555,6 @@ return view.extend({
 						'min': 0,
 						'max': 255,
 						'value': pwmVal,
-						'disabled': fanControlDisabled(fan),
 						'input': function(ev) {
 							var lbl = document.getElementById('periph-fan-pwm-lbl');
 							if (lbl)
@@ -591,8 +585,7 @@ return view.extend({
 			E('div', { 'class': 'cbi-page-actions' }, [
 				E('button', {
 					'class': 'btn cbi-button-save',
-					'click': ui.createHandlerFn(this, 'handleFanApply'),
-					'disabled': fanControlDisabled(fan)
+					'click': ui.createHandlerFn(this, 'handleFanApply')
 				}, _('Save')),
 				' ',
 				E('button', {
@@ -602,20 +595,17 @@ return view.extend({
 				' ',
 				E('button', {
 					'class': 'btn cbi-button-apply',
-					'click': ui.createHandlerFn(this, 'handleFanTest', 255, 'manual'),
-					'disabled': fanControlDisabled(fan)
+					'click': ui.createHandlerFn(this, 'handleFanTest', 255, 'manual')
 				}, _('Full-speed test')),
 				' ',
 				E('button', {
 					'class': 'btn cbi-button-apply',
-					'click': ui.createHandlerFn(this, 'handleFanTest', 0, 'manual'),
-					'disabled': fanControlDisabled(fan)
+					'click': ui.createHandlerFn(this, 'handleFanTest', 0, 'manual')
 				}, _('Inverted full-speed test')),
 				' ',
 				E('button', {
 					'class': 'btn cbi-button-reset',
-					'click': ui.createHandlerFn(this, 'handleFanTest', 0, 'off'),
-					'disabled': fanControlDisabled(fan)
+					'click': ui.createHandlerFn(this, 'handleFanTest', 0, 'off')
 				}, _('Stop fan'))
 			])
 		]);
