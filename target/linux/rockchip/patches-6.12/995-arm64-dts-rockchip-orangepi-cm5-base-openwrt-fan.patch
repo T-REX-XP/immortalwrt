@@ -33,7 +33,7 @@ maps. The Orange Pi BSP DTS for the CM5 uses PWM13 M1 for the fan output.
  			max-brightness = <255>;
  			pwms = <&pwm2 0 25000 0>;
  		};
-@@ -85,6 +89,14 @@
+@@ -85,6 +89,13 @@
  		};
  	};
  
@@ -41,14 +41,13 @@ maps. The Orange Pi BSP DTS for the CM5 uses PWM13 M1 for the fan output.
 +		compatible = "pwm-fan";
 +		#cooling-cells = <2>;
 +		cooling-levels = <0 50 100 150 200 255>;
-+		fan-supply = <&vcc5v0_sys>;
-+		pwms = <&pwm13 0 20000000 0>;
++		pwms = <&pwm7 0 50000 0>;
 +	};
 +
  	vbus_5v0: regulator-vbus-5v0 {
  		compatible = "regulator-fixed";
  		enable-active-high;
-@@ -174,7 +186,7 @@
+@@ -174,7 +185,7 @@
  	pinctrl-0 = <&i2c1m2_xfer>;
  	status = "okay";
  
@@ -57,25 +56,30 @@ maps. The Orange Pi BSP DTS for the CM5 uses PWM13 M1 for the fan output.
  		compatible = "haoyu,hym8563";
  		reg = <0x51>;
  		#clock-cells = <0>;
-@@ -273,6 +285,12 @@
+@@ -301,6 +312,12 @@
  	status = "okay";
  };
  
-+&pwm13 {
-+	pinctrl-0 = <&pwm13m1_pins>;
-+	pinctrl-names = "active";
++&pwm7 {
++	pinctrl-0 = <&pwm7m0_pins>;
++	pinctrl-names = "default";
 +	status = "okay";
 +};
 +
- &pwm4 {
+ &pwm5 {
+ 	pinctrl-0 = <&pwm5m1_pins>;
+ 	status = "okay";
+@@ -370,10 +387,40 @@
+ &vop_mmu {
  	status = "okay";
  };
-@@ -351,5 +369,35 @@
+ 
+ &vp0 {
  	vp0_out_hdmi0: endpoint@ROCKCHIP_VOP2_EP_HDMI0 {
  		reg = <ROCKCHIP_VOP2_EP_HDMI0>;
  		remote-endpoint = <&hdmi0_in_vp0>;
-+	};
-+};
+ 	};
+ };
 +
 +&package_thermal {
 +	polling-delay = <1000>;
@@ -92,7 +96,7 @@ maps. The Orange Pi BSP DTS for the CM5 uses PWM13 M1 for the fan output.
 +			hysteresis = <2000>;
 +			type = "active";
 +		};
- 	};
++	};
 +
 +	cooling-maps {
 +		map0 {
@@ -105,4 +109,4 @@ maps. The Orange Pi BSP DTS for the CM5 uses PWM13 M1 for the fan output.
 +			cooling-device = <&fan 2 THERMAL_NO_LIMIT>;
 +		};
 +	};
- };
++};
