@@ -1,7 +1,0 @@
-{
-	"luci-app-security-guide": {
-		"description": "Grant access to the Security Guide LuCI app",
-		"read": {},
-		"write": {}
-	}
-}

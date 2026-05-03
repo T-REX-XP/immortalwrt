@@ -1,3 +1,0 @@
-#!/bin/sh
-[ -x /etc/init.d/luci-peripherals ] && /etc/init.d/luci-peripherals enable
-exit 0
