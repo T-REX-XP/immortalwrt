@@ -600,6 +600,7 @@ define Device/xunlong_orangepi-cm5-base
   DEVICE_VENDOR := Xunlong
   DEVICE_MODEL := Orange Pi CM5 Base
   DEVICE_DTS := rk3588s-orangepi-cm5-base
+  BOOT_SCRIPT := orangepi-cm5-base
   UBOOT_DEVICE_NAME := orangepi-5-rk3588s
   DEVICE_PACKAGES := kmod-hwmon-pwmfan kmod-r8125 luci-ssl luci-mod-network luci-mod-status \
 	luci-mod-dashboard iwinfo rpcd-mod-iwinfo tailscale cloudflared luci-app-tailscale-community \
