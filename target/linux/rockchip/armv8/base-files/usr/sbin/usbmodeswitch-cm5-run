@@ -21,9 +21,16 @@ have_mtk_installer() {
 	lsusb 2>/dev/null | grep -Eq 'ID 0e8d:(2870|7109|0002)'
 }
 
-# Classic MT7612-class USB WLAN id seen after installer mode (extend if another PID appears).
+# Runtime USB IDs after switching (and some dongles that enumerate directly).
 have_mtk_wlan() {
-	lsusb 2>/dev/null | grep -q 'ID 0e8d:7612'
+	lsusb 2>/dev/null | grep -Eq 'ID 0e8d:(7612|7615|7610|7632|7663|7921|7925|7936|7961)' && return 0
+	for phy in /sys/class/ieee80211/*; do
+		[ -e "$phy" ] || continue
+		case "$(readlink -f "$phy/device" 2>/dev/null)" in
+			*/usb*) return 0 ;;
+		esac
+	done
+	return 1
 }
 
 attempt() {
@@ -51,12 +58,15 @@ hotplug)
 	(sleep 2; attempt "hotplug") &
 	;;
 boot-loop)
-	# First-boot safety net: dongle may enumerate before hotplug/usbmode settles.
+	# Let VBUS / hub settle; then retry switching much sooner than the old "sleep 5 first".
+	sleep 3
+	have_mtk_wlan && exit 0
+	attempt "boot-pass-0" || true
 	i=0
 	while [ "$i" -lt 36 ]; do
+		have_mtk_wlan && exit 0
 		i=$((i + 1))
 		sleep 5
-		have_mtk_wlan && exit 0
 		attempt "boot-pass-$i" || true
 	done
 	;;

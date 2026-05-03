@@ -1,0 +1,5 @@
+# MediaTek MT7612U AC1200-class dongles (installer / fake CD-ROM → wlan).
+# Common lsusb before switch: ID 0e8d:2870 (after: typically 0e8d:7612).
+TargetVendor=0x0e8d
+TargetProduct=0x7612
+StandardEject=1

@@ -1,0 +1,20 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: OpenWrt <openwrt@openwrt.org>
+Date: Sun, 3 May 2026 00:00:00 +0000
+Subject: arm64: dts: rockchip: CM5 Base USB VBUS startup delay
+
+Orange Pi CM5 Base: delay vbus_5v0 enable slightly so USB WiFi dongles
+that enumerate at power-on are stable before xhci probes.
+
+---
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-orangepi-cm5-base.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-orangepi-cm5-base.dts
+@@ -109,6 +109,7 @@ vbus_5v0: regulator-vbus-5v0 {
+ 		compatible = "regulator-fixed";
+ 		enable-active-high;
+ 		gpio = <&gpio0 RK_PD3 GPIO_ACTIVE_HIGH>;
++		startup-delay-us = <150000>;
+ 		pinctrl-names = "default";
+ 		pinctrl-0 = <&vbus_5v0_en_pin>;
+ 		regulator-name = "vbus_5v0";
+
