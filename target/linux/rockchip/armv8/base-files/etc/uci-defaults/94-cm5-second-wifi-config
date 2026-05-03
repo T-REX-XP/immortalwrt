@@ -1,0 +1,11 @@
+#!/bin/sh
+# Runs once on first boot (after defaults). Helps when USB radios appear after /sbin/wifi config in early init.
+
+case "$(board_name 2>/dev/null)" in
+xunlong,orangepi-cm5-base) ;;
+*) exit 0 ;;
+esac
+
+/sbin/wifi config 2>/dev/null
+
+exit 0
