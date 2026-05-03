@@ -1,0 +1,74 @@
+#!/bin/sh
+
+[ "$ACTION" = "add" ] || exit 0
+
+board="$(board_name 2>/dev/null)"
+[ "$board" = "xunlong,orangepi-cm5-base" ] || exit 0
+
+(
+	sleep 3
+
+	# Create a wireless config for newly detected USB radios, then enable
+	# those radios as LAN access points. This is intentionally scoped to USB
+	# phy paths so it does not alter future onboard/PCIe WiFi devices.
+	wifi config >/dev/null 2>&1
+
+	changed=0
+
+	is_usb_radio() {
+		local radio="$1"
+		local path phyname syspath
+
+		path="$(uci -q get wireless."$radio".path)"
+		[ -n "$path" ] && echo "$path" | grep -qi usb && return 0
+
+		phyname="$(uci -q get wireless."$radio".phyname)"
+		[ -n "$phyname" ] || phyname="$radio"
+		syspath="$(readlink -f /sys/class/ieee80211/"$phyname"/device 2>/dev/null)"
+		[ -n "$syspath" ] && echo "$syspath" | grep -qi usb
+	}
+
+	ensure_ap_iface() {
+		local radio="$1"
+		local section
+
+		section="$(uci -q show wireless | sed -n "s/^\(wireless\.[^.]*\)=wifi-iface$/\1/p" | while read s; do
+			[ "$(uci -q get "$s".device)" = "$radio" ] && {
+				echo "${s#wireless.}"
+				break
+			}
+		done)"
+
+		if [ -z "$section" ]; then
+			section="$(uci add wireless wifi-iface)"
+			changed=1
+		fi
+
+		uci -q batch <<-EOF
+			set wireless.$section.device='$radio'
+			set wireless.$section.network='lan'
+			set wireless.$section.mode='ap'
+			set wireless.$section.ssid='ImmortalWrt-CM5'
+			set wireless.$section.encryption='psk2'
+			set wireless.$section.key='immortalwrt-cm5'
+			delete wireless.$section.disabled
+		EOF
+		changed=1
+	}
+
+	for radio in $(uci -q show wireless | sed -n "s/^wireless\.\([^.]*\)=wifi-device$/\1/p"); do
+		is_usb_radio "$radio" || continue
+
+		uci -q batch <<-EOF
+			delete wireless.$radio.disabled
+			set wireless.$radio.country='US'
+		EOF
+		ensure_ap_iface "$radio"
+		logger -t cm5-usb-wifi "configured USB WiFi radio $radio as ImmortalWrt-CM5 hotspot"
+	done
+
+	if [ "$changed" = "1" ]; then
+		uci commit wireless
+		wifi reload >/dev/null 2>&1 || wifi >/dev/null 2>&1
+	fi
+) &
