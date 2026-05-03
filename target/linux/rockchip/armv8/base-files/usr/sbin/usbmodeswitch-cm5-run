@@ -1,0 +1,65 @@
+#!/bin/sh
+
+# Retry MediaTek USB WiFi installer mode (0e8d:2870 etc.) automatically on Orange Pi CM5 Base.
+
+case "$(board_name 2>/dev/null)" in
+xunlong,orangepi-cm5-base) ;;
+*) exit 0 ;;
+esac
+
+stamp=/tmp/usbmode_cm5_stamp
+
+run_usbmode_twice() {
+	logger -t usbmode-cm5 "$1 - running usbmode"
+	/sbin/usbmode -s
+	sleep 2
+	/sbin/usbmode -s
+}
+
+# Returns 0 when an installer-mode MediaTek USB id is present on the bus (any line).
+have_mtk_installer() {
+	lsusb 2>/dev/null | grep -Eq 'ID 0e8d:(2870|7109|0002)'
+}
+
+# Classic MT7612-class USB WLAN id seen after installer mode (extend if another PID appears).
+have_mtk_wlan() {
+	lsusb 2>/dev/null | grep -q 'ID 0e8d:7612'
+}
+
+attempt() {
+	tag="$1"
+
+	have_mtk_installer || return 1
+
+	now=$(date +%s)
+	last=0
+	[ -f "$stamp" ] && last=$(cat "$stamp")
+
+	if [ "$last" -gt 0 ] && [ "$((now - last))" -lt 8 ]; then
+		return 0
+	fi
+
+	echo "$now" >"$stamp"
+
+	run_usbmode_twice "$tag"
+	return 0
+}
+
+case "$1" in
+hotplug)
+	# USB bursts many add events on one plug; throttle with attempt()'s stamp.
+	(sleep 2; attempt "hotplug") &
+	;;
+boot-loop)
+	# First-boot safety net: dongle may enumerate before hotplug/usbmode settles.
+	i=0
+	while [ "$i" -lt 36 ]; do
+		i=$((i + 1))
+		sleep 5
+		have_mtk_wlan && exit 0
+		attempt "boot-pass-$i" || true
+	done
+	;;
+esac
+
+exit 0

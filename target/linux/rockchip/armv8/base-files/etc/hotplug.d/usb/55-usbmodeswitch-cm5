@@ -1,0 +1,8 @@
+#!/bin/sh
+
+[ "$ACTION" = "add" ] || exit 0
+
+[ -x /usr/sbin/usbmodeswitch-cm5-run ] || exit 0
+/usr/sbin/usbmodeswitch-cm5-run hotplug
+
+exit 0

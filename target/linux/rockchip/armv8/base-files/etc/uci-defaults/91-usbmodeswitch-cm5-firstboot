@@ -1,0 +1,12 @@
+#!/bin/sh
+
+case "$(board_name 2>/dev/null)" in
+xunlong,orangepi-cm5-base) ;;
+*) exit 0 ;;
+esac
+
+[ -x /usr/sbin/usbmodeswitch-cm5-run ] || exit 0
+
+/usr/sbin/usbmodeswitch-cm5-run boot-loop &
+
+exit 0
