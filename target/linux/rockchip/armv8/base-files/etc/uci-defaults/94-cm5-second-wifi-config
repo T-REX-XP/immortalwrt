@@ -8,4 +8,22 @@ esac
 
 /sbin/wifi config 2>/dev/null
 
+# LuCI only shows Network→Wireless when wireless has a wifi-device section (see luci-mod-network menu.d).
+# With USB-only Wi-Fi, first boot can still have no phy; add a disabled stub so the menu exists until hardware appears.
+if uci -q show wireless 2>/dev/null | grep -q '=wifi-device'; then
+	exit 0
+fi
+
+uci -q batch <<-EOF
+	set wireless.cm5_placeholder=wifi-device
+	set wireless.cm5_placeholder.type='mac80211'
+	set wireless.cm5_placeholder.path='placeholder/no-radio'
+	set wireless.cm5_placeholder.band='2g'
+	set wireless.cm5_placeholder.channel='1'
+	set wireless.cm5_placeholder.htmode='NOHT'
+	set wireless.cm5_placeholder.country='US'
+	set wireless.cm5_placeholder.disabled='1'
+	commit wireless
+EOF
+
 exit 0

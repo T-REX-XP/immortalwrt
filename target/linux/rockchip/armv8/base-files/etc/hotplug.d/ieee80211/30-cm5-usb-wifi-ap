@@ -8,6 +8,8 @@ board="$(board_name 2>/dev/null)"
 (
 	sleep 3
 
+	uci -q delete wireless.cm5_placeholder 2>/dev/null && uci commit wireless
+
 	# Create a wireless config for newly detected USB radios, then enable
 	# those radios as LAN access points. This is intentionally scoped to USB
 	# phy paths so it does not alter future onboard/PCIe WiFi devices.
