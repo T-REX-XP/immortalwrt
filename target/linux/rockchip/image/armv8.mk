@@ -601,7 +601,18 @@ define Device/xunlong_orangepi-cm5-base
   DEVICE_MODEL := Orange Pi CM5 Base
   DEVICE_DTS := rk3588s-orangepi-cm5-base
   UBOOT_DEVICE_NAME := orangepi-5-rk3588s
-  DEVICE_PACKAGES := kmod-hwmon-pwmfan kmod-r8125 luci-ssl luci-mod-network luci-mod-status luci-mod-dashboard iwinfo rpcd-mod-iwinfo tailscale cloudflared luci-app-tailscale-community luci-app-cloudflared adblock luci-app-adblock blocky luci-app-blocky luci-app-security-guide luci-app-peripherals luci-app-buttons speedtest-go luci-app-speedtest fantastic-keyring fantastic-packages-feeds transmission luci-app-transmission docker dockerd luci-app-docker luci-app-dockerman kmod-wireguard wireguard-tools luci-proto-wireguard rpcd-mod-wireguard kmod-amneziawg amneziawg-tools luci-proto-amneziawg usb-modeswitch usbutils kmod-mt76x2u kmod-rtl8812au-ct wpad-openssl hostapd-utils
+  DEVICE_PACKAGES := kmod-hwmon-pwmfan kmod-r8125 luci-ssl luci-mod-network luci-mod-status \
+	luci-mod-dashboard iwinfo rpcd-mod-iwinfo tailscale cloudflared luci-app-tailscale-community \
+	luci-app-cloudflared adblock luci-app-adblock blocky luci-app-blocky luci-app-security-guide \
+	luci-app-peripherals luci-app-buttons speedtest-go luci-app-speedtest fantastic-keyring \
+	fantastic-packages-feeds transmission luci-app-transmission docker dockerd luci-app-docker \
+	luci-app-dockerman kmod-wireguard wireguard-tools luci-proto-wireguard rpcd-mod-wireguard \
+	kmod-amneziawg amneziawg-tools luci-proto-amneziawg usb-modeswitch usbutils kmod-mt76x2u \
+	kmod-rtl8812au-ct wpad-openssl hostapd-utils luci-app-wol etherwake pbr luci-app-pbr \
+	luci-app-travelmate travelmate luci-app-fwknopd fwknopd luci-app-privoxy privoxy luci-app-ksmbd \
+	ksmbd-server luci-app-aria2 aria2 luci-app-minidlna minidlna luci-app-statistics collectd \
+	luci-app-nlbwmon nlbwmon luci-app-watchcat watchcat luci-app-sqm sqm-scripts luci-app-ttyd ttyd \
+	luci-app-commands wireless-regdb
 endef
 TARGET_DEVICES += xunlong_orangepi-cm5-base
 

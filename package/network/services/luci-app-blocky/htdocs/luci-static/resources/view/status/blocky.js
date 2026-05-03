@@ -7,6 +7,46 @@
 var API_BASE = 'http://127.0.0.1:4000/api';
 var METRICS_URL = 'http://127.0.0.1:4000/metrics';
 
+var BLOCKY_UI_CSS = [
+	'.luci-app-blocky{font-size:inherit;}',
+	'.blocky-pill{display:inline-block;font-weight:700;font-size:.82em;line-height:1.25;',
+	'text-transform:uppercase;letter-spacing:.04em;padding:.2em .65em;border-radius:4px;',
+	'color:#fff;vertical-align:middle;}',
+	'.blocky-pill-yes{background:#2e7d32;}',
+	'.blocky-pill-no{background:#c62828;}',
+	'.blocky-pill-warn{background:#ef6c00;}',
+	'.blocky-pill-muted{background:#616161;}',
+	'.blocky-pill-note{font-weight:500;text-transform:none;letter-spacing:normal;',
+	'color:var(--text-primary-high, #333);margin-left:.5em;font-size:.95em;}',
+	'body[data-darkmode="1"] .blocky-pill-note{color:var(--text-primary-high, #e0e0e0);}',
+	'.blocky-metric-card{background:#e8e8e8;border-radius:10px;box-sizing:border-box;}',
+	'body[data-darkmode="1"] .blocky-metric-card{background:rgba(255,255,255,.08);}',
+	'.blocky-status-table .tr{vertical-align:middle;}'
+].join('');
+
+function blockyInjectStyles() {
+	return E('style', { 'type': 'text/css' }, [ BLOCKY_UI_CSS ]);
+}
+
+function blockyPill(kind, label) {
+	var cls = 'blocky-pill ';
+
+	if (kind === 'yes')
+		cls += 'blocky-pill-yes';
+	else if (kind === 'no')
+		cls += 'blocky-pill-no';
+	else if (kind === 'warn')
+		cls += 'blocky-pill-warn';
+	else
+		cls += 'blocky-pill-muted';
+
+	return E('span', { 'class': cls }, [ label ]);
+}
+
+function blockyStatusDetail(text) {
+	return E('span', { 'class': 'blocky-pill-note' }, [ text ]);
+}
+
 var callServiceList = rpc.declare({
 	object: 'service',
 	method: 'list',
@@ -277,7 +317,7 @@ function metricSortScore(name) {
 }
 
 function renderCard(title, value, description) {
-	return E('div', { 'class': 'td left', 'style': 'min-width:12em; padding:1em' }, [
+	return E('div', { 'class': 'td left blocky-metric-card', 'style': 'min-width:12em; padding:1em' }, [
 		E('strong', {}, [ title ]),
 		E('div', { 'style': 'font-size:1.8em; margin:.25em 0' }, [ value ]),
 		E('small', {}, [ description ])
@@ -288,31 +328,44 @@ function renderStatus(status, service, metrics) {
 	var running = isRunning(service);
 	var enabled = status && status.enabled;
 	var paused = status && status.autoEnableInSec > 0;
+	var blockingTail;
+	var sampleTotal;
+
+	if (paused)
+		blockingTail = blockyStatusDetail(_('auto-enables in %s').format(formatDuration(status.autoEnableInSec)));
+	else
+		blockingTail = blockyStatusDetail(enabled ? _('enabled') : _('disabled'));
+
+	sampleTotal = metrics.order.reduce(function(total, name) {
+		return total + metrics.families[name].samples.length;
+	}, 0);
 
 	return E('div', { 'class': 'cbi-section' }, [
 		E('h3', {}, [ _('Runtime') ]),
-		E('div', { 'class': 'table' }, [
+		E('div', { 'class': 'table blocky-status-table' }, [
 			E('div', { 'class': 'tr' }, [
 				E('div', { 'class': 'td left', 'style': 'width:25%' }, [ _('Service') ]),
-				E('div', { 'class': 'td left' }, [ running ? _('running') : _('stopped') ])
+				E('div', { 'class': 'td left' }, [
+					blockyPill(running ? 'yes' : 'no', running ? _('Yes') : _('No')),
+					blockyStatusDetail(running ? _('running') : _('stopped'))
+				])
 			]),
 			E('div', { 'class': 'tr' }, [
 				E('div', { 'class': 'td left' }, [ _('Blocking') ]),
 				E('div', { 'class': 'td left' }, [
-					paused ? _('paused, auto-enables in %s').format(formatDuration(status.autoEnableInSec)) :
-						(enabled ? _('enabled') : _('disabled'))
+					paused ? blockyPill('warn', _('Paused')) :
+						blockyPill(enabled ? 'yes' : 'no', enabled ? _('Yes') : _('No')),
+					blockingTail
 				])
 			]),
 			E('div', { 'class': 'tr' }, [
-				E('div', { 'class': 'td left' }, [ _('Metric families') ]),
-				E('div', { 'class': 'td left' }, [ formatNumber(metrics.order.length) ])
-			]),
-			E('div', { 'class': 'tr' }, [
-				E('div', { 'class': 'td left' }, [ _('Metric samples') ]),
+				E('div', { 'class': 'td left' }, [ _('Prometheus metrics') ]),
 				E('div', { 'class': 'td left' }, [
-					formatNumber(metrics.order.reduce(function(total, name) {
-						return total + metrics.families[name].samples.length;
-					}, 0))
+					blockyPill('yes', _('Yes')),
+					blockyStatusDetail(_('%d families, %s samples').format(
+						metrics.order.length,
+						formatNumber(sampleTotal)
+					))
 				])
 			])
 		])
@@ -324,6 +377,10 @@ function renderOverview(metrics) {
 
 	return E('div', { 'class': 'cbi-section' }, [
 		E('h3', {}, [ _('Overview') ]),
+		E('p', { 'class': 'cbi-section-descr' }, [
+			blockyPill('yes', _('Live')),
+			blockyStatusDetail(_('Counters from Prometheus exporter'))
+		]),
 		E('div', { 'class': 'table' }, [
 			E('div', { 'class': 'tr' }, [
 				renderCard(_('Queries'), formatNumber(overview.totalQueries), _('Total query counter, when exposed')),
@@ -411,7 +468,13 @@ function renderAllMetrics(metrics) {
 
 function renderNoMetrics(raw) {
 	return E('div', { 'class': 'alert-message warning' }, [
-		_('No metrics were returned from %s. Ensure Blocky is running and prometheus.enable is true in /etc/blocky/config.yml.').format(METRICS_URL),
+		E('p', {}, [
+			blockyPill('no', _('No')),
+			blockyStatusDetail(_('metrics endpoint unreachable or prometheus disabled'))
+		]),
+		E('p', {}, [
+			_('No metrics were returned from %s. Ensure Blocky is running and prometheus.enable is true in /etc/blocky/config.yml.').format(METRICS_URL)
+		]),
 		raw ? E('pre', { 'style': 'white-space:pre-wrap; margin-top:1em' }, [ raw ]) : ''
 	]);
 }
@@ -431,6 +494,7 @@ return view.extend({
 		var rawMetrics = data[2];
 		var metrics = parseMetrics(rawMetrics);
 		var content = [
+			blockyInjectStyles(),
 			E('h2', {}, [ _('Blocky Status') ]),
 			E('p', { 'class': 'cbi-section-descr' }, [
 				_('Runtime status and Prometheus metrics from the local Blocky instance.')
@@ -447,7 +511,7 @@ return view.extend({
 			content.push(renderNoMetrics(rawMetrics));
 		}
 
-		return E('div', {}, content);
+		return E('div', { 'class': 'luci-app-blocky' }, content);
 	},
 
 	handleSaveApply: null,
