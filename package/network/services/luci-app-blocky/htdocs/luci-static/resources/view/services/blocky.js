@@ -40,6 +40,52 @@ function safeString(value) {
 	return String(value);
 }
 
+function parseBlockyDnsPort(configYaml) {
+	var lines = safeString(configYaml).split(/\n/);
+	var inPorts = false;
+	var baseIndent = -1;
+	var i;
+	var line;
+	var m;
+	var lead;
+
+	for (i = 0; i < lines.length; i++) {
+		line = lines[i];
+		if (/^\s*ports\s*:\s*$/.test(line)) {
+			inPorts = true;
+			m = line.match(/^(\s*)/);
+			baseIndent = m ? m[1].length : 0;
+			continue;
+		}
+		if (!inPorts)
+			continue;
+
+		if (line.trim() === '')
+			continue;
+
+		lead = line.match(/^(\s*)/);
+		if (lead && lead[1].length <= baseIndent)
+			break;
+
+		m = line.match(/^\s+dns\s*:\s*(\d+)\s*$/);
+		if (m)
+			return Number(m[1]);
+	}
+
+	return 5353;
+}
+
+function execDnsmasqSync(argv) {
+	return fs.exec_direct('/usr/sbin/blocky-dnsmasq-sync', argv || []).then(function(res) {
+		var code = res ? Number(res.code) : 0;
+
+		if (code)
+			throw new Error((res.stderr || res.stdout || '').trim() || _('blocky-dnsmasq-sync failed.'));
+
+		return res;
+	});
+}
+
 function formatNumber(value) {
 	var number = Number(value || 0);
 
@@ -482,6 +528,40 @@ function renderQueryLogsNotice(config) {
 	]);
 }
 
+function renderRouterDnsIntegration(configYaml, dnsFwdRaw) {
+	var port = parseBlockyDnsPort(configYaml);
+	var enabled = safeString(dnsFwdRaw).trim() === '1';
+
+	return E('div', { 'class': 'cbi-section' }, [
+		E('h3', {}, [ _('Router DNS integration') ]),
+		E('p', { 'class': 'cbi-section-descr' }, [
+			_('Phones and laptops on Wi-Fi ask dnsmasq on the router for DNS (UDP/TCP port 53). Blocky uses its own port (%s in config.yml) so it does not replace dnsmasq. Turn this on to chain dnsmasq to Blocky so filtering and block lists apply to every DHCP client without manual DNS settings.').format(String(port))
+		]),
+		E('div', { 'class': 'table' }, [
+			E('div', { 'class': 'tr' }, [
+				E('div', { 'class': 'td left', 'style': 'width:33%' }, [ _('Forwarding') ]),
+				E('div', { 'class': 'td left' }, [
+					enabled
+						? _('enabled — dnsmasq uses %s').format('127.0.0.1#' + String(port))
+						: _('disabled — dnsmasq uses normal WAN/upstream resolvers')
+				])
+			])
+		]),
+		E('p', {}, [
+			actionButton(_('Use Blocky for all LAN / Wi-Fi DNS'), function() {
+				return execDnsmasqSync([ 'enable', String(port) ]);
+			}, 'cbi-button-apply'),
+			' ',
+			actionButton(_('Stop forwarding (restore dnsmasq only)'), function() {
+				return execDnsmasqSync([ 'disable' ]);
+			}, 'cbi-button-negative')
+		]),
+		E('p', { 'class': 'cbi-section-descr' }, [
+			_('After changing the DNS port in YAML, click Save & restart Blocky, then toggle this again so dnsmasq matches. Block list refresh still uses the Controls tab “Refresh lists” API button.')
+		])
+	]);
+}
+
 function renderConfig(content) {
 	var editor = E('textarea', {
 		'class': 'cbi-input-textarea',
@@ -583,7 +663,8 @@ return view.extend({
 			L.resolveDefault(callServiceList('blocky'), {}),
 			L.resolveDefault(blockyApi('/blocking/status'), { enabled: false }),
 			L.resolveDefault(fs.read_direct(CONFIG_PATH), ''),
-			L.resolveDefault(fetchText(METRICS_URL), '')
+			L.resolveDefault(fetchText(METRICS_URL), ''),
+			L.resolveDefault(fs.exec_direct('/usr/sbin/blocky-dnsmasq-sync', [ 'status' ]), { stdout: '0\n' })
 		]);
 	},
 
@@ -592,6 +673,8 @@ return view.extend({
 		var status = data[1];
 		var config = data[2];
 		var metrics = data[3];
+		var dnsFwd = data[4];
+		var dnsFwdRaw = dnsFwd && dnsFwd.stdout !== undefined ? dnsFwd.stdout : '0\n';
 
 		return E('div', {}, [
 			E('h2', {}, [ _('Blocky DNS') ]),
@@ -601,7 +684,10 @@ return view.extend({
 			renderTabs([
 				{
 					title: _('Configuration'),
-					nodes: [ renderConfig(config) ]
+					nodes: [
+						renderRouterDnsIntegration(config, dnsFwdRaw),
+						renderConfig(config)
+					]
 				},
 				{
 					title: _('Status'),
