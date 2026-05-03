@@ -9,7 +9,8 @@ esac
 /sbin/wifi config 2>/dev/null
 
 # LuCI only shows Network→Wireless when wireless has a wifi-device section (see luci-mod-network menu.d).
-# With USB-only Wi-Fi, first boot can still have no phy; add a disabled stub so the menu exists until hardware appears.
+# With USB-only Wi-Fi, first boot can still have no phy; add disabled stub wireless.cm5_placeholder so the
+# menu exists until a real wiphy appears (then hotplug /etc/init.d/reload-sdio-wifi removes it).
 if uci -q show wireless 2>/dev/null | grep -q '=wifi-device'; then
 	exit 0
 fi
