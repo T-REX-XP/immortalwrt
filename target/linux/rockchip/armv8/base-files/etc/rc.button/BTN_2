@@ -1,0 +1,21 @@
+#!/bin/sh
+
+# Orange Pi CM5 Base MaskROM button (adc-keys, linux,code = BTN_2).
+
+state="/var/run/button-${BUTTON}.state"
+log="/var/log/button-events.log"
+
+case "$ACTION" in
+pressed)
+	echo pressed > "$state"
+	logger -t button "MaskROM pressed button=$BUTTON seen=$SEEN"
+	;;
+released)
+	echo released > "$state"
+	logger -t button "MaskROM released button=$BUTTON seen=$SEEN"
+	;;
+esac
+
+echo "$(date '+%Y-%m-%d %H:%M:%S') $BUTTON $ACTION seen=${SEEN:-0}" >> "$log"
+
+return 0

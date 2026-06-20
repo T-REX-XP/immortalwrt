@@ -620,7 +620,7 @@ define Device/xunlong_orangepi-cm5-base
 	luci-app-cloudflared adblock luci-app-adblock blocky luci-app-blocky luci-app-security-guide \
 	luci-app-peripherals luci-app-buttons luci-app-oled i2c-tools coreutils-nohup speedtest-go luci-app-speedtest fantastic-keyring \
 	fantastic-packages-feeds transmission luci-app-transmission docker dockerd luci-app-docker \
-	luci-app-dockerman kmod-wireguard wireguard-tools luci-proto-wireguard rpcd-mod-wireguard \
+	luci-app-dockerman kmod-input-adc-keys kmod-button-hotplug kmod-wireguard wireguard-tools luci-proto-wireguard rpcd-mod-wireguard \
 	kmod-amneziawg amneziawg-tools luci-proto-amneziawg usb-modeswitch usbutils kmod-mt76x2u \
 	kmod-rtl8812au-ct wpad-openssl hostapd-utils luci-app-wol etherwake pbr luci-app-pbr \
 	luci-app-travelmate travelmate luci-app-fwknopd fwknopd luci-app-privoxy privoxy luci-app-ksmbd \
