@@ -605,7 +605,7 @@ define Device/xunlong_orangepi-cm5-base
   DEVICE_PACKAGES := kmod-hwmon-pwmfan kmod-r8125 luci-ssl luci-mod-network luci-mod-status \
 	luci-mod-dashboard iwinfo rpcd-mod-iwinfo tailscale cloudflared luci-app-tailscale-community \
 	luci-app-cloudflared adblock luci-app-adblock blocky luci-app-blocky luci-app-security-guide \
-	luci-app-peripherals luci-app-buttons speedtest-go luci-app-speedtest fantastic-keyring \
+	luci-app-peripherals luci-app-buttons luci-app-oled i2c-tools coreutils-nohup speedtest-go luci-app-speedtest fantastic-keyring \
 	fantastic-packages-feeds transmission luci-app-transmission docker dockerd luci-app-docker \
 	luci-app-dockerman kmod-wireguard wireguard-tools luci-proto-wireguard rpcd-mod-wireguard \
 	kmod-amneziawg amneziawg-tools luci-proto-amneziawg usb-modeswitch usbutils kmod-mt76x2u \
