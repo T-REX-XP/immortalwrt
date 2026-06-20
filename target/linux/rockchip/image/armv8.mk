@@ -622,7 +622,7 @@ define Device/xunlong_orangepi-cm5-base
 	fantastic-packages-feeds transmission luci-app-transmission docker dockerd luci-app-docker \
 	luci-app-dockerman kmod-input-adc-keys kmod-button-hotplug kmod-wireguard wireguard-tools luci-proto-wireguard rpcd-mod-wireguard \
 	kmod-amneziawg amneziawg-tools luci-proto-amneziawg usb-modeswitch usbutils kmod-mt76x2u \
-	kmod-rtl8812au-ct wpad-openssl hostapd-utils luci-app-wol etherwake pbr luci-app-pbr \
+	kmod-rtl8812au-ct wpad-openssl hostapd-utils cm5-button-scripts luci-app-wol etherwake pbr luci-app-pbr \
 	luci-app-travelmate travelmate luci-app-fwknopd fwknopd luci-app-privoxy privoxy luci-app-ksmbd \
 	ksmbd-server luci-app-aria2 aria2 luci-app-minidlna minidlna luci-app-statistics collectd \
 	luci-app-nlbwmon nlbwmon luci-app-watchcat watchcat luci-app-sqm sqm-scripts luci-app-ttyd ttyd \

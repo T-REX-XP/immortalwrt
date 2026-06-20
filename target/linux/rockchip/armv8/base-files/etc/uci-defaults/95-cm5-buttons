@@ -1,10 +1,15 @@
 #!/bin/sh
-# Orange Pi CM5 Base: install default button scripts (override generic wifi-scripts wps).
+# Orange Pi CM5 Base: ensure button event log exists; install scripts if package missing.
 
 case "$(board_name)" in
 xunlong,orangepi-cm5-base) ;;
 *) exit 0 ;;
 esac
+
+touch /var/log/button-events.log
+chmod 0644 /var/log/button-events.log 2>/dev/null
+
+[ -x /etc/rc.button/wps ] && [ -x /etc/rc.button/BTN_2 ] && exit 0
 
 cat > /etc/rc.button/wps <<'EOF'
 #!/bin/sh
