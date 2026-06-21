@@ -1,0 +1,3 @@
+# MT7612U / mt76x2u USB AP: disable scatter-gather (stability + 5 GHz throughput).
+options mt76x2u disable_usb_sg=1
+options mt76_usb disable_usb_sg=1

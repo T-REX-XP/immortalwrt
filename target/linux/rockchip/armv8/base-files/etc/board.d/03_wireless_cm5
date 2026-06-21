@@ -1,0 +1,16 @@
+#!/bin/sh
+
+. /lib/functions/uci-defaults.sh
+
+board_config_update
+
+case "$(board_name)" in
+xunlong,orangepi-cm5-base)
+	ucidef_set_country US
+	ucidef_set_wireless_mac_count 5g 1
+	;;
+esac
+
+board_config_flush
+
+exit 0

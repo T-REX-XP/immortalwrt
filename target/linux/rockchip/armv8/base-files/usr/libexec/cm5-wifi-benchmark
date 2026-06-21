@@ -1,0 +1,46 @@
+#!/bin/sh
+# Quick MT76x2u / CM5 Wi-Fi AP diagnostics (see docs/cm5-mt76x2u-hotspot-optimization.md).
+
+set -e
+
+echo "=== CM5 Wi-Fi benchmark / diagnostics ==="
+echo "board: $(board_name 2>/dev/null)"
+echo "regdom: $(iw reg get 2>/dev/null | head -1)"
+echo
+
+echo "=== USB Wi-Fi devices ==="
+lsusb 2>/dev/null | grep -Ei '0e8d:7612|0e8d:2870|mediatek|802.11' || echo "(none found)"
+echo
+lsusb -t 2>/dev/null || true
+echo
+
+echo "=== wireless UCI ==="
+uci show wireless 2>/dev/null || true
+echo
+
+echo "=== ieee80211 / AP interfaces ==="
+for phy in /sys/class/ieee80211/*; do
+	[ -e "$phy" ] || continue
+	p=${phy##*/}
+	echo "--- phy $p ---"
+	iw phy "$p" info 2>/dev/null | sed -n '1,25p'
+	echo
+done
+
+for dev in $(iw dev 2>/dev/null | awk '/Interface/{print $2}'); do
+	echo "--- iface $dev ---"
+	iw dev "$dev" info 2>/dev/null
+	iw dev "$dev" station dump 2>/dev/null || true
+	echo
+done
+
+if [ -f /etc/credentials/cm5-wifi-ap ]; then
+	echo "=== AP credentials file ==="
+	echo "/etc/credentials/cm5-wifi-ap (SSID only; key omitted)"
+	grep CM5_WIFI_SSID /etc/credentials/cm5-wifi-ap 2>/dev/null || true
+	echo
+fi
+
+echo "=== Throughput test (manual) ==="
+echo "On a associated client: iperf3 -c $(uci -q get network.lan.ipaddr 2>/dev/null | cut -d/ -f1) -R -t 30"
+echo "On router: iperf3 -s"
