@@ -1,0 +1,45 @@
+#!/bin/sh
+# CM5 Base: LAN1 = eth1/green:lan-0, LAN2 = eth2/green:lan-1 (carrier silkscreen).
+
+[ -f /etc/.cm5_leds_fixed_v3 ] && exit 0
+[ "$(board_name)" = "xunlong,orangepi-cm5-base" ] || exit 0
+
+. /lib/functions.sh
+
+fix_netdev_led() {
+	local cfg="$1"
+	local sysfs="$2"
+	local dev="$3"
+
+	[ -n "$cfg" ] || return 0
+	uci -q batch <<-EOF
+		set system.$cfg.sysfs='$sysfs'
+		set system.$cfg.dev='$dev'
+		set system.$cfg.trigger='netdev'
+		set system.$cfg.mode='link tx rx'
+	EOF
+}
+
+idx=0
+while uci -q get "system.@led[$idx]" >/dev/null 2>&1; do
+	case "$(uci -q get "system.@led[$idx].name")" in
+		LAN1) fix_netdev_led "@led[$idx]" "green:lan-0" "eth1" ;;
+		LAN2) fix_netdev_led "@led[$idx]" "green:lan-1" "eth2" ;;
+		WAN) fix_netdev_led "@led[$idx]" "green:wan" "eth0" ;;
+		STATUS)
+			uci -q batch <<-EOF
+				set system.@led[$idx].sysfs='red:status'
+				set system.@led[$idx].trigger='heartbeat'
+				delete system.@led[$idx].dev
+				delete system.@led[$idx].mode
+			EOF
+			;;
+	esac
+	idx=$((idx + 1))
+done
+
+uci commit system
+touch /etc/.cm5_leds_fixed_v3
+/etc/init.d/led restart 2>/dev/null
+
+exit 0

@@ -229,7 +229,7 @@ router board (RK3588S module + carrier with GbE + 2x RTL8125).
 +		pcie-eth@30,0 {
 +			compatible = "pci10ec,8125";
 +			reg = <0x000000 0 0 0 0>;
-+			label = "eth1";
++			label = "eth2";
 +		};
 +	};
 +};
@@ -247,7 +247,7 @@ router board (RK3588S module + carrier with GbE + 2x RTL8125).
 +		pcie-eth@40,0 {
 +			compatible = "pci10ec,8125";
 +			reg = <0x000000 0 0 0 0>;
-+			label = "eth2";
++			label = "eth1";
 +		};
 +	};
 +};
