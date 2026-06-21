@@ -1,0 +1,18 @@
+#!/bin/sh
+# CM5: remove third-party feed URLs from distfeeds.list — they are not mirrored on
+# downloads.immortalwrt.org and cause apk update warnings (404 HTML parsed as packages.adb).
+# Packages from awgopenwrt / openwrt_packages are baked into the CM5 image at build time.
+
+[ -f /etc/.cm5_apk_feeds_fixed_v1 ] && exit 0
+[ "$(board_name)" = "xunlong,orangepi-cm5-base" ] || exit 0
+
+DIST="/etc/apk/repositories.d/distfeeds.list"
+[ -f "$DIST" ] || exit 0
+
+sed -i \
+	-e '/\/awgopenwrt\/packages\.adb/d' \
+	-e '/\/openwrt_packages\/packages\.adb/d' \
+	"$DIST"
+
+touch /etc/.cm5_apk_feeds_fixed_v1
+exit 0
