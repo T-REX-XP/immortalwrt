@@ -75,21 +75,24 @@ router board (RK3588S module + carrier with GbE + 2x RTL8125).
 +
 +		led-2 {
 +			color = <LED_COLOR_ID_GREEN>;
++			default-state = "off";
 +			function = LED_FUNCTION_WAN;
 +			max-brightness = <255>;
-+			pwms = <&pwm4 0 25000 PWM_POLARITY_INVERTED>;
++			pwms = <&pwm4 0 25000 0>;
 +		};
 +
 +		led-3 {
 +			color = <LED_COLOR_ID_GREEN>;
++			default-state = "off";
 +			function = LED_FUNCTION_LAN;
 +			function-enumerator = <0>;
 +			max-brightness = <255>;
-+			pwms = <&pwm5 0 25000 PWM_POLARITY_INVERTED>;
++			pwms = <&pwm5 0 25000 0>;
 +		};
 +
 +		led-4 {
 +			color = <LED_COLOR_ID_GREEN>;
++			default-state = "off";
 +			function = LED_FUNCTION_LAN;
 +			function-enumerator = <1>;
 +			max-brightness = <255>;
