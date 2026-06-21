@@ -1,0 +1,59 @@
+#!/bin/sh
+# CM5 Base: fix stale/generic network layout (br-lan on eth0 only) after flash or sysupgrade.
+
+[ -f /etc/.opi_cm5_network_migrated ] && exit 0
+
+. /lib/functions.sh
+[ "$(board_name)" = "xunlong,orangepi-cm5-base" ] || exit 0
+
+idx=
+d=0
+while uci -q get "network.@device[$d]" >/dev/null 2>&1; do
+	[ "$(uci -q get "network.@device[$d].name")" = "br-lan" ] && idx=$d && break
+	d=$((d + 1))
+done
+[ -n "$idx" ] || exit 0
+
+ports="$(uci -q get "network.@device[$idx].ports")"
+changed=0
+
+if echo "$ports" | grep -qw eth0; then
+	for p in $ports; do
+		uci -q del_list "network.@device[$idx].ports=$p"
+	done
+	uci add_list "network.@device[$idx].ports=eth1"
+	uci add_list "network.@device[$idx].ports=eth2"
+	changed=1
+else
+	echo "$ports" | grep -qw eth1 || {
+		uci add_list "network.@device[$idx].ports=eth1"
+		changed=1
+	}
+	echo "$ports" | grep -qw eth2 || {
+		uci add_list "network.@device[$idx].ports=eth2"
+		changed=1
+	}
+fi
+
+case "$(uci -q get network.lan.ipaddr)" in
+192.168.1.1/24|192.168.1.1)
+	uci set network.lan.ipaddr='192.168.8.1/24'
+	changed=1
+	;;
+192.168.2.1/24|192.168.2.1)
+	uci set network.lan.ipaddr='192.168.8.1/24'
+	changed=1
+	;;
+esac
+
+if ! uci -q show network.wan >/dev/null 2>&1; then
+	uci set network.wan=interface
+	uci set network.wan.device='eth0'
+	uci set network.wan.proto='dhcp'
+	changed=1
+fi
+
+[ "$changed" = "1" ] && uci commit network
+
+touch /etc/.opi_cm5_network_migrated
+exit 0
