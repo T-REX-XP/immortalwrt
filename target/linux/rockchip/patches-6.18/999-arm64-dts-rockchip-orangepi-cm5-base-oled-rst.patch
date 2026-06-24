@@ -1,26 +1,29 @@
 From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
 From: OpenWrt <openwrt@openwrt.org>
 Date: Wed, 25 Jun 2026 00:00:00 +0000
-Subject: arm64: dts: rockchip: CM5 Base Waveshare OLED RST on FPC pad 9
+Subject: arm64: dts: rockchip: CM5 Base Waveshare OLED RST gpio-leds node
 
 Hold GPIO4_B4 (FPC expansion pad 9) high for the Waveshare 1.3" OLED HAT
-RST line (40-pin header pin 22). On Raspberry Pi this is GPIO25; the panel
-stays in reset until RST is released (driven high).
-
-Wire FPC pad 9 to HAT pin 22 when using the CM5 FPC harness.
+RST line (40-pin header pin 22). Use gpio-leds (not gpio-hog) with a
+companion pinctrl entry in patch 1000.
 
 ---
 --- a/arch/arm64/boot/dts/rockchip/rk3588s-orangepi-cm5-base.dts
 +++ b/arch/arm64/boot/dts/rockchip/rk3588s-orangepi-cm5-base.dts
-@@ -36,6 +36,13 @@
- 		stdout-path = "serial2:1500000n8";
+@@ -44,6 +44,18 @@
+ 		};
  	};
  
-+	waveshare_oled_rst: waveshare-oled-rst {
-+		compatible = "gpio-hog";
-+		gpios = <&gpio4 RK_PB4 GPIO_ACTIVE_HIGH>;
-+		output-high;
-+		line-name = "waveshare-oled-rst";
++	waveshare_oled_rst {
++		compatible = "gpio-leds";
++		pinctrl-names = "default";
++		pinctrl-0 = <&waveshare_oled_rst_pin>;
++
++		oled-rst {
++			label = "waveshare-oled-rst";
++			gpios = <&gpio4 RK_PB4 GPIO_ACTIVE_HIGH>;
++			default-state = "on";
++		};
 +	};
 +
  	gpio-keys {

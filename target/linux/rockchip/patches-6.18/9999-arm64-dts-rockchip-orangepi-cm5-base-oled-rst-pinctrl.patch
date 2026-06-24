@@ -1,0 +1,23 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: OpenWrt <openwrt@openwrt.org>
+Date: Wed, 25 Jun 2026 00:00:00 +0000
+Subject: arm64: dts: rockchip: CM5 Base Waveshare OLED RST pinctrl
+
+Mux GPIO4_B4 to GPIO for waveshare-oled-rst (patch 999).
+
+---
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-orangepi-cm5-base.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-orangepi-cm5-base.dts
+@@ -338,6 +338,12 @@
+ 			rockchip,pins = <0 RK_PD3 RK_FUNC_GPIO &pcfg_pull_none>;
+ 		};
+ 	};
++
++	oled {
++		waveshare_oled_rst_pin: waveshare-oled-rst-pin {
++			rockchip,pins = <4 RK_PB4 RK_FUNC_GPIO &pcfg_pull_none>;
++		};
++	};
+ };
+ 
+ &pwm2 {
