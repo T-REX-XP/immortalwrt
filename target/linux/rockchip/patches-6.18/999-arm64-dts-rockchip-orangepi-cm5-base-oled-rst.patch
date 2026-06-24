@@ -5,12 +5,12 @@ Subject: arm64: dts: rockchip: CM5 Base Waveshare OLED RST gpio-leds node
 
 Hold GPIO4_B4 (FPC expansion pad 9) high for the Waveshare 1.3" OLED HAT
 RST line (40-pin header pin 22). Use gpio-leds (not gpio-hog) with a
-companion pinctrl entry in patch 1000.
+companion pinctrl entry in patch 9999.
 
 ---
 --- a/arch/arm64/boot/dts/rockchip/rk3588s-orangepi-cm5-base.dts
 +++ b/arch/arm64/boot/dts/rockchip/rk3588s-orangepi-cm5-base.dts
-@@ -44,6 +44,18 @@
+@@ -41,6 +41,18 @@
  		};
  	};
  

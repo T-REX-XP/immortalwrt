@@ -4,19 +4,20 @@ Date: Tue, 24 Jun 2026 00:00:00 +0000
 Subject: arm64: dts: rockchip: enable i2c7 on Orange Pi CM5 Base FPC
 
 The 12-pin FPC expansion port routes I2C to GPIO4_B2/B3 (pads 11/10)
-via i2c7 mux m3. Enable the controller for HAT/OLED wiring on the
-carrier expansion connector.
+via i2c7 mux m3. Enable the controller; board pull-ups are in patch 9999.
 
 ---
 --- a/arch/arm64/boot/dts/rockchip/rk3588s-orangepi-cm5-base.dts
 +++ b/arch/arm64/boot/dts/rockchip/rk3588s-orangepi-cm5-base.dts
-@@ -185,6 +185,12 @@
+@@ -215,6 +215,13 @@
+ 		wakeup-source;
  	};
  };
  
 +&i2c7 {
 +	pinctrl-names = "default";
-+	pinctrl-0 = <&i2c7m3_xfer>;
++	pinctrl-0 = <&fpc_i2c7_xfer>;
++	clock-frequency = <100000>;
 +	status = "okay";
 +};
 +
