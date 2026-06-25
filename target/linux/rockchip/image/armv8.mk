@@ -617,14 +617,12 @@ define Device/xunlong_orangepi-cm5-base
   UBOOT_DEVICE_NAME := orangepi-5-rk3588s
   DEVICE_PACKAGES := kmod-hwmon-pwmfan kmod-r8125 luci-ssl luci-mod-network luci-mod-status \
 	luci-mod-dashboard iwinfo rpcd-mod-iwinfo tailscale cloudflared luci-app-tailscale-community \
-	luci-app-cloudflared blocky luci-app-blocky luci-app-security-guide \
-	luci-app-peripherals luci-app-buttons luci-app-oled i2c-tools gpiod-tools coreutils-nohup speedtest-go luci-app-speedtest \
+	luci-app-cloudflared luci-app-peripherals luci-app-buttons luci-app-oled i2c-tools gpiod-tools coreutils-nohup \
 	kmod-input-adc-keys kmod-button-hotplug kmod-wireguard wireguard-tools luci-proto-wireguard rpcd-mod-wireguard \
 	kmod-amneziawg amneziawg-tools luci-proto-amneziawg usb-modeswitch usbutils kmod-mt76x2u \
 	kmod-rtl8812au-ct wpad-openssl hostapd-utils cm5-button-scripts luci-app-wol etherwake pbr luci-app-pbr \
-	luci-app-fwknopd fwknopd luci-app-privoxy privoxy luci-app-ksmbd \
-	ksmbd-server luci-app-minidlna minidlna luci-app-statistics collectd \
-	luci-app-nlbwmon nlbwmon luci-app-watchcat watchcat luci-app-sqm sqm-scripts luci-app-ttyd ttyd \
+	luci-app-fwknopd fwknopd luci-app-privoxy privoxy \
+	luci-app-nlbwmon nlbwmon luci-app-watchcat watchcat luci-app-ttyd ttyd \
 	luci-app-commands wireless-regdb
 endef
 TARGET_DEVICES += xunlong_orangepi-cm5-base
