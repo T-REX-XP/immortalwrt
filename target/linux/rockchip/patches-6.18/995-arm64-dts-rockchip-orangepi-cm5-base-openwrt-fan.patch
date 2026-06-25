@@ -62,14 +62,14 @@ maps. The Orange Pi BSP DTS for the CM5 uses PWM13 M1 for the fan output.
  
 +&pwm13 {
 +	pinctrl-0 = <&pwm13m1_pins>;
-+	pinctrl-names = "default";
++	pinctrl-names = "active";
 +	status = "okay";
 +};
 +
  &pwm5 {
  	pinctrl-0 = <&pwm5m1_pins>;
  	status = "okay";
-@@ -370,10 +387,40 @@
+@@ -370,10 +387,74 @@
  &vop_mmu {
  	status = "okay";
  };
@@ -83,16 +83,35 @@ maps. The Orange Pi BSP DTS for the CM5 uses PWM13 M1 for the fan output.
 +
 +&package_thermal {
 +	polling-delay = <1000>;
++	polling-delay-passive = <2000>;
 +
 +	trips {
 +		package_fan0: package-fan0 {
-+			temperature = <55000>;
++			temperature = <50000>;
 +			hysteresis = <2000>;
 +			type = "active";
 +		};
 +
 +		package_fan1: package-fan1 {
++			temperature = <55000>;
++			hysteresis = <2000>;
++			type = "active";
++		};
++
++		package_fan2: package-fan2 {
++			temperature = <60000>;
++			hysteresis = <2000>;
++			type = "active";
++		};
++
++		package_fan3: package-fan3 {
 +			temperature = <65000>;
++			hysteresis = <2000>;
++			type = "active";
++		};
++
++		package_fan4: package-fan4 {
++			temperature = <70000>;
 +			hysteresis = <2000>;
 +			type = "active";
 +		};
@@ -106,7 +125,22 @@ maps. The Orange Pi BSP DTS for the CM5 uses PWM13 M1 for the fan output.
 +
 +		map1 {
 +			trip = <&package_fan1>;
-+			cooling-device = <&case_fan 2 THERMAL_NO_LIMIT>;
++			cooling-device = <&case_fan 2 2>;
++		};
++
++		map2 {
++			trip = <&package_fan2>;
++			cooling-device = <&case_fan 3 3>;
++		};
++
++		map3 {
++			trip = <&package_fan3>;
++			cooling-device = <&case_fan 4 4>;
++		};
++
++		map4 {
++			trip = <&package_fan4>;
++			cooling-device = <&case_fan 5 THERMAL_NO_LIMIT>;
 +		};
 +	};
 +};
