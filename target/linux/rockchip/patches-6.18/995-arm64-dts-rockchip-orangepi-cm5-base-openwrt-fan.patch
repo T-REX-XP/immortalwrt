@@ -41,7 +41,7 @@ maps. The Orange Pi BSP DTS for the CM5 uses PWM13 M1 for the fan output.
 +		compatible = "pwm-fan";
 +		#cooling-cells = <2>;
 +		cooling-levels = <0 50 100 150 200 255>;
-+		pwms = <&pwm7 0 50000 0>;
++		pwms = <&pwm13 0 20000000 0>;
 +	};
 +
  	vbus_5v0: regulator-vbus-5v0 {
@@ -60,8 +60,8 @@ maps. The Orange Pi BSP DTS for the CM5 uses PWM13 M1 for the fan output.
  	status = "okay";
  };
  
-+&pwm7 {
-+	pinctrl-0 = <&pwm7m0_pins>;
++&pwm13 {
++	pinctrl-0 = <&pwm13m1_pins>;
 +	pinctrl-names = "default";
 +	status = "okay";
 +};
