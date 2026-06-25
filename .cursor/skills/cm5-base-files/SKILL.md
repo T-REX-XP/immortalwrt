@@ -35,7 +35,7 @@ Always guard with `[ "$(board_name)" = "xunlong,orangepi-cm5-base" ]`.
 
 ## Buttons
 
-GPIO keys are defined in DTS patch `997-*-buttons`. Userspace handlers ship in **openwrt-packages** `cm5-button-scripts` (in `DEVICE_PACKAGES`).
+GPIO keys are defined in DTS patch `997-*-buttons`. Userspace handlers ship in **openwrt-packages** `cm5-button-scripts` (in `DEVICE_PACKAGES`); handlers call `hotplug-call button` so **luci-app-oled** `99-oled` receives presses. Fork fallback `95-cm5-buttons` was removed.
 
 ## Wi-Fi
 
@@ -59,7 +59,7 @@ GPIO keys are defined in DTS patch `997-*-buttons`. Userspace handlers ship in *
 - Scripts run **once** on first boot (removed after success)
 - Use `board_name` case guard for CM5-only logic
 - Prefer `uci commit` only when changes made
-- Blocky/DNS defaults may live in openwrt-packages `blocky` package uci-defaults
+- Blocky/DNS defaults live in openwrt-packages `blocky` package uci-defaults when Blocky is installed (not in default CM5 image)
 
 ## Testing after changes
 

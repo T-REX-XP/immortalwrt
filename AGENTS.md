@@ -56,7 +56,8 @@ target/linux/rockchip/
   patches-6.18/996-*-vbus.patch
   patches-6.18/997-*-buttons.patch
   patches-6.18/998-*-i2c7*.patch      # FPC I2C for OLED HAT
-  patches-6.18/999-*-oled-rst*.patch  # panel RST gpio (see openwrt-packages wiring doc)
+  patches-6.18/9980-*-led-polarity*.patch  # WAN/LAN LED PWM polarity
+  patches-6.18/999-*-oled-rst*.patch  # panel RST gpio (GPIO1_B4; see openwrt-packages wiring doc)
   armv8/base-files/                 # Runtime: network, wifi, buttons, uci-defaults
 ```
 
@@ -66,8 +67,8 @@ Defined in `target/linux/rockchip/image/armv8.mk` under `Device/xunlong_orangepi
 
 - Network: `kmod-r8125`, WireGuard, AmneziaWG, Tailscale, PBR, …
 - UI: `luci-ssl`, `luci-app-peripherals`, `luci-app-oled`, …
-- OLED (feed): `oledd` menu on `/dev/i2c-7` (CM5 Waveshare HAT); LuCI **Services → OLED** (menu button mapping); low-level I2C scan in **System → Peripherals**
-- Platform: `kmod-hwmon-pwmfan`, `cm5-button-scripts` (USERKEY/MaskROM hotplug handlers), USB Wi-Fi modules
+- OLED (feed): `oledd` menu on `/dev/i2c-7` (CM5 Waveshare HAT); LuCI **Services → OLED** (menu button mapping); I2C bus scan in **System → Peripherals → I2C**
+- Platform: `kmod-hwmon-pwmfan`, `cm5-button-scripts` (USERKEY/MaskROM hotplug handlers; chains to OLED via `hotplug-call button`), USB Wi-Fi modules
 
 Custom feed packages (`luci-app-oled`, `luci-app-peripherals`, `cm5-button-scripts`) require `openwrt_packages` feed at build time.
 

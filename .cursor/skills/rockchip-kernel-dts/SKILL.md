@@ -26,6 +26,10 @@ Patches directory: `target/linux/rockchip/patches-6.18/`
 | `995-*-openwrt-fan` | PWM fan node (`PWM13`, `pwm13m1_pins`, 20 ms period) |
 | `996-*-vbus-startup-delay` | USB VBUS startup timing |
 | `997-*-buttons` | GPIO keys / button nodes for hotplug |
+| `998-*-fpc-i2c7` | FPC `i2c7` mux for OLED HAT |
+| `9980-*-led-polarity` | WAN/LAN netdev LED `PWM_POLARITY_INVERTED` |
+| `999-*-oled-rst` | `waveshare-oled-rst` gpio-led on **GPIO1_B4** (FPC pad 9) |
+| `9999-*-oled-rst-pinctrl` | FPC I2C SoC pull-ups |
 
 Patch numbering: use next free `99x-` slot in `patches-6.18/`; keep series prefix consistent.
 
