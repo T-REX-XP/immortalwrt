@@ -53,7 +53,10 @@ if ! uci -q show network.wan >/dev/null 2>&1; then
 	changed=1
 fi
 
-[ "$changed" = "1" ] && uci commit network
+[ "$changed" = "1" ] && {
+	logger -t cm5-network "applied CM5 network migration (br-lan eth1+eth2, lan 192.168.8.1, wan eth0)"
+	uci commit network
+}
 
 touch /etc/.opi_cm5_network_migrated
 exit 0

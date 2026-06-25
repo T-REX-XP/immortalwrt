@@ -63,12 +63,13 @@ boot-loop)
 	have_mtk_wlan && exit 0
 	attempt "boot-pass-0" || true
 	i=0
-	while [ "$i" -lt 36 ]; do
+	while [ "$i" -lt 12 ]; do
 		have_mtk_wlan && exit 0
 		i=$((i + 1))
 		sleep 5
 		attempt "boot-pass-$i" || true
 	done
+	logger -t usbmode-cm5 "boot-loop finished: no MediaTek USB WLAN after 1 minute"
 	;;
 esac
 

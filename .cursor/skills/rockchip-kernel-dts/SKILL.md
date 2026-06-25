@@ -56,7 +56,7 @@ Kernel module: `kmod-hwmon-pwmfan` → `pwm_fan` → hwmon name `pwmfan`.
 
 DTS defines GPIO keys consumed by `kmod-button-hotplug` → `/etc/rc.button/*`.
 
-Userspace scripts: `cm5-button-scripts` (openwrt-packages) or fallback in `95-cm5-buttons`.
+Userspace scripts: `cm5-button-scripts` (openwrt-packages).
 
 ## eMMC
 

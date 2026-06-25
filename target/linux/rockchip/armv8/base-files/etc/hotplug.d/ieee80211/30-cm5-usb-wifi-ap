@@ -7,6 +7,8 @@ board="$(board_name 2>/dev/null)"
 
 . /lib/cm5-base-wifi.sh
 
+logger -t cm5-wifi "ieee80211 $ACTION: scheduling USB Wi-Fi autoconfig"
+
 (
 	sleep 3
 

@@ -33,11 +33,9 @@ Fixes stale configs after flash/sysupgrade:
 
 Always guard with `[ "$(board_name)" = "xunlong,orangepi-cm5-base" ]`.
 
-## Buttons (`etc/uci-defaults/95-cm5-buttons`)
+## Buttons
 
-Fallback install of `/etc/rc.button/wps` and `/etc/rc.button/BTN_2` when `cm5-button-scripts` package is missing.
-
-Preferred source: **openwrt-packages** `cm5-button-scripts` package.
+GPIO keys are defined in DTS patch `997-*-buttons`. Userspace handlers ship in **openwrt-packages** `cm5-button-scripts` (in `DEVICE_PACKAGES`).
 
 ## Wi-Fi
 

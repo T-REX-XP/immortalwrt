@@ -15,6 +15,7 @@ if uci -q show wireless 2>/dev/null | grep -q '=wifi-device'; then
 	exit 0
 fi
 
+logger -t cm5-wifi "added wireless.cm5_placeholder stub for LuCI menu"
 uci -q batch <<-EOF
 	set wireless.cm5_placeholder=wifi-device
 	set wireless.cm5_placeholder.type='mac80211'

@@ -247,7 +247,7 @@ Document: **one AP on 5 GHz** for performance. Optional second **`wifi-iface`** 
 
 #### C3. WPS button integration
 
-`95-cm5-buttons` / `cm5-button-scripts` already call **`hostapd_cli wps_pbc`**. Ensure WPS runs on the **5 GHz AP iface** (not placeholder).
+`cm5-button-scripts` already call **`hostapd_cli wps_pbc`**. Ensure WPS runs on the **5 GHz AP iface** (not placeholder).
 
 ---
 

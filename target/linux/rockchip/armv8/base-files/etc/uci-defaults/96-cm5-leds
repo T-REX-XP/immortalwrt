@@ -42,6 +42,7 @@ while uci -q get "system.@led[$idx]" >/dev/null 2>&1; do
 done
 
 uci commit system
+logger -t cm5-leds "applied CM5 netdev LED config (link mode, default off)"
 touch /etc/.cm5_leds_fixed_v5
 /etc/init.d/led restart 2>/dev/null
 

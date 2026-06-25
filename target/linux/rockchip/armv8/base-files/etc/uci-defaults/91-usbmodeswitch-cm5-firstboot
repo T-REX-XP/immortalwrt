@@ -7,6 +7,7 @@ esac
 
 [ -x /usr/sbin/usbmodeswitch-cm5-run ] || exit 0
 
+logger -t usbmode-cm5 "starting boot-loop modeswitch retries"
 /usr/sbin/usbmodeswitch-cm5-run boot-loop &
 
 exit 0
