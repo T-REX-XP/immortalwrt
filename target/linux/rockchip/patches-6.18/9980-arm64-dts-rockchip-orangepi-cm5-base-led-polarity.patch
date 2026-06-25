@@ -1,0 +1,32 @@
+From 0000000000000000000000000000000000000000 Mon Sep 17 00:00:00 2001
+From: OpenWrt <openwrt@openwrt.org>
+Date: Sun, 21 Jun 2026 00:00:00 +0000
+Subject: arm64: dts: rockchip: CM5 Base restore WAN/LAN0 PWM LED polarity
+
+Upstream Orange Pi CM5 Base DTS drives WAN (pwm4) and LAN0 (pwm5) with
+PWM_POLARITY_INVERTED. Without it, netdev "off" brightness keeps those
+green LEDs lit when the port has no link.
+
+LAN1 (pwm6) stays normal polarity per upstream schematic.
+
+---
+--- a/arch/arm64/boot/dts/rockchip/rk3588s-orangepi-cm5-base.dts
++++ b/arch/arm64/boot/dts/rockchip/rk3588s-orangepi-cm5-base.dts
+@@ -76,7 +76,7 @@
+ 			default-state = "off";
+ 			function = LED_FUNCTION_WAN;
+ 			max-brightness = <255>;
+-			pwms = <&pwm4 0 25000 0>;
++			pwms = <&pwm4 0 25000 PWM_POLARITY_INVERTED>;
+ 		};
+ 
+ 		led-3 {
+@@ -85,7 +85,7 @@
+ 			function = LED_FUNCTION_LAN;
+ 			function-enumerator = <0>;
+ 			max-brightness = <255>;
+-			pwms = <&pwm5 0 25000 0>;
++			pwms = <&pwm5 0 25000 PWM_POLARITY_INVERTED>;
+ 		};
+ 
+ 		led-4 {

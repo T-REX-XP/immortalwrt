@@ -1,8 +1,8 @@
 #!/bin/sh
 # CM5 Base: LAN1 = eth1/green:lan-0, LAN2 = eth2/green:lan-1 (carrier silkscreen).
-# PWM WAN/LAN0 LEDs use active-high drive (no PWM_POLARITY_INVERTED in DTS).
+# WAN/LAN0 PWM LEDs need PWM_POLARITY_INVERTED in DTS (patch 9980); UCI default=0 = off.
 
-[ -f /etc/.cm5_leds_fixed_v4 ] && exit 0
+[ -f /etc/.cm5_leds_fixed_v5 ] && exit 0
 [ "$(board_name)" = "xunlong,orangepi-cm5-base" ] || exit 0
 
 . /lib/functions.sh
@@ -17,7 +17,7 @@ fix_netdev_led() {
 		set system.$cfg.sysfs='$sysfs'
 		set system.$cfg.dev='$dev'
 		set system.$cfg.trigger='netdev'
-		set system.$cfg.mode='link tx rx'
+		set system.$cfg.mode='link'
 		set system.$cfg.default='0'
 	EOF
 }
@@ -42,7 +42,7 @@ while uci -q get "system.@led[$idx]" >/dev/null 2>&1; do
 done
 
 uci commit system
-touch /etc/.cm5_leds_fixed_v4
+touch /etc/.cm5_leds_fixed_v5
 /etc/init.d/led restart 2>/dev/null
 
 exit 0
