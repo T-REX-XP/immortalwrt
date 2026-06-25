@@ -65,11 +65,11 @@ target/linux/rockchip/
 Defined in `target/linux/rockchip/image/armv8.mk` under `Device/xunlong_orangepi-cm5-base`. Includes:
 
 - Network: `kmod-r8125`, WireGuard, AmneziaWG, Tailscale, PBR, …
-- UI: `luci-ssl`, `luci-app-peripherals`, `luci-app-buttons`, `luci-app-oled`, …
-- OLED (feed): `oledd` menu on `/dev/i2c-7` (CM5 Waveshare HAT); LuCI **Services → OLED**; low-level I2C scan in **System → Peripherals**
-- Platform: `kmod-hwmon-pwmfan`, `cm5-button-scripts`, USB Wi-Fi modules
+- UI: `luci-ssl`, `luci-app-peripherals`, `luci-app-oled`, …
+- OLED (feed): `oledd` menu on `/dev/i2c-7` (CM5 Waveshare HAT); LuCI **Services → OLED** (menu button mapping); low-level I2C scan in **System → Peripherals**
+- Platform: `kmod-hwmon-pwmfan`, `cm5-button-scripts` (USERKEY/MaskROM hotplug handlers), USB Wi-Fi modules
 
-Custom feed packages (`luci-app-oled`, `luci-app-peripherals`, `luci-app-buttons`, `cm5-button-scripts`) require `openwrt_packages` feed at build time.
+Custom feed packages (`luci-app-oled`, `luci-app-peripherals`, `cm5-button-scripts`) require `openwrt_packages` feed at build time.
 
 ## Development rules
 
