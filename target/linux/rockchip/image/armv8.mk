@@ -620,9 +620,8 @@ define Device/xunlong_orangepi-cm5-base
 	luci-app-cloudflared luci-app-peripherals luci-app-oled i2c-tools gpiod-tools coreutils-nohup \
 	kmod-input-adc-keys kmod-button-hotplug kmod-wireguard wireguard-tools luci-proto-wireguard rpcd-mod-wireguard \
 	kmod-amneziawg amneziawg-tools luci-proto-amneziawg usb-modeswitch usbutils kmod-mt76x2u \
-	kmod-rtl8812au-ct wpad-openssl hostapd-utils cm5-button-scripts luci-app-wol etherwake pbr luci-app-pbr \
-	luci-app-fwknopd fwknopd luci-app-privoxy privoxy \
-	luci-app-nlbwmon nlbwmon luci-app-watchcat watchcat luci-app-ttyd ttyd \
+	kmod-rtl8812au-ct wpad-openssl hostapd-utils cm5-button-scripts luci-app-wol etherwake \
+	luci-app-nlbwmon nlbwmon luci-app-ttyd ttyd \
 	luci-app-commands wireless-regdb
 endef
 TARGET_DEVICES += xunlong_orangepi-cm5-base
