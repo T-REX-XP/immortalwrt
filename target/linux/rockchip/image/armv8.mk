@@ -619,11 +619,10 @@ define Device/xunlong_orangepi-cm5-base
 	luci-mod-dashboard iwinfo rpcd-mod-iwinfo tailscale cloudflared luci-app-tailscale-community \
 	luci-app-cloudflared blocky luci-app-blocky luci-app-security-guide \
 	luci-app-peripherals luci-app-buttons luci-app-oled i2c-tools gpiod-tools coreutils-nohup speedtest-go luci-app-speedtest \
-	docker dockerd luci-app-docker \
-	luci-app-dockerman kmod-input-adc-keys kmod-button-hotplug kmod-wireguard wireguard-tools luci-proto-wireguard rpcd-mod-wireguard \
+	kmod-input-adc-keys kmod-button-hotplug kmod-wireguard wireguard-tools luci-proto-wireguard rpcd-mod-wireguard \
 	kmod-amneziawg amneziawg-tools luci-proto-amneziawg usb-modeswitch usbutils kmod-mt76x2u \
 	kmod-rtl8812au-ct wpad-openssl hostapd-utils cm5-button-scripts luci-app-wol etherwake pbr luci-app-pbr \
-	luci-app-travelmate travelmate luci-app-fwknopd fwknopd luci-app-privoxy privoxy luci-app-ksmbd \
+	luci-app-fwknopd fwknopd luci-app-privoxy privoxy luci-app-ksmbd \
 	ksmbd-server luci-app-minidlna minidlna luci-app-statistics collectd \
 	luci-app-nlbwmon nlbwmon luci-app-watchcat watchcat luci-app-sqm sqm-scripts luci-app-ttyd ttyd \
 	luci-app-commands wireless-regdb

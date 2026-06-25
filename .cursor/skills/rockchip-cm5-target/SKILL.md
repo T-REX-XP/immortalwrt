@@ -30,8 +30,8 @@ When adding packages, append to `DEVICE_PACKAGES` in `armv8.mk`:
 
 - **Hardware:** `kmod-hwmon-pwmfan`, `kmod-r8125`, `kmod-input-adc-keys`, `kmod-button-hotplug`
 - **Custom feed:** `blocky`, `luci-app-blocky`, `luci-app-peripherals`, `luci-app-buttons`, `luci-app-oled`, `cm5-button-scripts`, `luci-app-security-guide`, `luci-app-speedtest`
-- **Network/VPN:** WireGuard, AmneziaWG, Tailscale, PBR, travelmate, fwknopd, …
-- **Services:** Docker, SQM, watchcat, privoxy, ksmbd, minidlna, statistics, nlbwmon
+- **Network/VPN:** WireGuard, AmneziaWG, Tailscale, PBR, fwknopd, …
+- **Services:** SQM, watchcat, privoxy, ksmbd, minidlna, statistics, nlbwmon (no Docker, travelmate, transmission, aria2)
 - **Wi-Fi USB:** `kmod-mt76x2u`, `kmod-rtl8812au-ct`, `wpad-openssl`, `hostapd-utils`
 
 Recipes live in **openwrt-packages** or ImmortalWrt feeds — this tree only lists them in `DEVICE_PACKAGES`.
