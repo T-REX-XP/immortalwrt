@@ -168,8 +168,12 @@ cm5_ensure_ap_iface() {
 }
 
 # After wifi config: prefer 5 GHz VHT80 AP; disable extra 2.4 GHz radios.
+# Runs once until /etc/.cm5_wifi_ap_configured exists; later boots must not call
+# wifi config or retune radios (reload-sdio-wifi + ieee80211 hotplug fire every boot).
 cm5_autoconfig_hotspot() {
 	local radio band primary changed
+
+	[ -f /etc/.cm5_wifi_ap_configured ] && return 0
 
 	wifi config >/dev/null 2>&1
 

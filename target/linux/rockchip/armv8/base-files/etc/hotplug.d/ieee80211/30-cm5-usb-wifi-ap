@@ -13,5 +13,6 @@ logger -t cm5-wifi "ieee80211 $ACTION: scheduling USB Wi-Fi autoconfig"
 	sleep 3
 
 	cm5_drop_wireless_placeholder
+	[ -f /etc/.cm5_wifi_ap_configured ] && exit 0
 	cm5_autoconfig_hotspot
 ) &
