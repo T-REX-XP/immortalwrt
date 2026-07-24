@@ -353,6 +353,17 @@ define Device/tplink_sg2008p-v1
 endef
 TARGET_DEVICES += tplink_sg2008p-v1
 
+define Device/tplink_sg2008p-v3
+  SOC := rtl8380
+  KERNEL_SIZE := 6m
+  IMAGE_SIZE := 26m
+  DEVICE_VENDOR := TP-Link
+  DEVICE_MODEL := SG2008P
+  DEVICE_VARIANT := v3
+  DEVICE_PACKAGES := i2c-tools
+endef
+TARGET_DEVICES += tplink_sg2008p-v3
+
 define Device/tplink_sg2210p-v3
   SOC := rtl8380
   KERNEL_SIZE := 6m
@@ -380,10 +391,20 @@ define Device/zyxel_gs1900-10hp-a1
   DEVICE_MODEL := GS1900-10HP
   DEVICE_VARIANT := A1
   ZYXEL_VERS := AAZI
-  DEVICE_PACKAGES += realtek-poe
+  DEVICE_PACKAGES += kmod-pse-realtek-mcu-uart
   SUPPORTED_DEVICES += zyxel,gs1900-10hp
 endef
 TARGET_DEVICES += zyxel_gs1900-10hp-a1
+
+define Device/zyxel_gs1900-10hp-b1
+  $(Device/zyxel_gs1900)
+  SOC := rtl8380
+  DEVICE_MODEL := GS1900-10HP
+  DEVICE_VARIANT := B1
+  ZYXEL_VERS := AAZI
+  DEVICE_PACKAGES += kmod-pse-realtek-mcu-uart
+endef
+TARGET_DEVICES += zyxel_gs1900-10hp-b1
 
 define Device/zyxel_gs1900-16-a1
   $(Device/zyxel_gs1900)
@@ -433,7 +454,7 @@ define Device/zyxel_gs1900-8hp-b1
   DEVICE_VARIANT := B1
   ZYXEL_VERS := AAHI
   SUPPORTED_DEVICES += zyxel,gs1900-8hp-v2
-  DEVICE_PACKAGES += realtek-poe
+  DEVICE_PACKAGES += kmod-pse-realtek-mcu-uart
 endef
 TARGET_DEVICES += zyxel_gs1900-8hp-b1
 
