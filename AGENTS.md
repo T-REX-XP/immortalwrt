@@ -51,31 +51,33 @@ target/linux/rockchip/
   armv8/target.mk                   # DEFAULT_PROFILE
   image/armv8.mk                    # Device/xunlong_orangepi-cm5-base, DEVICE_PACKAGES
   image/orangepi-cm5-base.bootscript
-  patches-6.18/994-*-cm5-*.patch  # DTS bring-up
+  patches-6.18/994-*-cm5-*.patch    # DTS bring-up
   patches-6.18/995-*-fan.patch
   patches-6.18/996-*-vbus.patch
   patches-6.18/997-*-buttons.patch
-  patches-6.18/998-*-i2c7*.patch      # FPC I2C for OLED HAT
+  patches-6.18/998-*-i2c7*.patch    # FPC I2C for OLED HAT
   patches-6.18/9980-*-led-polarity*.patch  # WAN/LAN LED PWM polarity
-  patches-6.18/999-*-oled-rst*.patch  # panel RST gpio (GPIO1_B4; see openwrt-packages wiring doc)
-  armv8/base-files/                 # Runtime: network, wifi, buttons, uci-defaults
+  patches-6.18/999-*-oled-rst*.patch       # panel RST gpio (GPIO1_B4)
+  patches-6.18/9999-*-oled-rst-pinctrl*.patch  # FPC I2C SoC pull-ups
+  armv8/base-files/                 # Runtime: network, LEDs, wifi, buttons, uci-defaults
 ```
 
 ## DEVICE_PACKAGES (CM5)
 
 Defined in `target/linux/rockchip/image/armv8.mk` under `Device/xunlong_orangepi-cm5-base`. Includes:
 
-- Network: `kmod-r8125`, WireGuard, AmneziaWG, Tailscale, Cloudflared, …
-- UI: `luci-ssl`, `luci-app-peripherals`, `luci-app-oled`, …
-- OLED (feed): `oledd` menu on `/dev/i2c-7` (CM5 Waveshare HAT); LuCI **Services → OLED** (menu button mapping); I2C bus scan in **System → Peripherals → I2C**
-- Platform: `kmod-hwmon-pwmfan`, `cm5-button-scripts` (USERKEY/MaskROM hotplug handlers; chains to OLED via `hotplug-call button`), USB Wi-Fi modules
+- Network: `kmod-r8125`, WireGuard, AmneziaWG, Tailscale, Cloudflared, WoL (`luci-app-wol` + `etherwake`)
+- UI: `luci-ssl`, `luci-mod-*`, `luci-app-peripherals`, `luci-app-oled`, `luci-app-mcu-display`, `luci-app-commands`
+- OLED / MCU (feed): `oledd` on `/dev/i2c-7` (Waveshare HAT); LuCI **Services → OLED**; MCU display app; I2C scan in **System → Peripherals → I2C**
+- Platform: `kmod-hwmon-pwmfan`, `cm5-button-scripts` (USERKEY/MaskROM; chains to OLED via `hotplug-call button`), USB Wi-Fi (`kmod-mt76x2u`, `kmod-rtl8812au-ct`), `i2c-tools`, `gpiod-tools`
+- Services: `nlbwmon`, `ttyd` (no Docker, travelmate, blocky, PBR, fwknopd, privoxy, watchcat, speedtest, SMB, DLNA, statistics, SQM)
 
-Custom feed packages (`luci-app-oled`, `luci-app-peripherals`, `cm5-button-scripts`) require `openwrt_packages` feed at build time.
+Custom feed packages (`luci-app-oled`, `luci-app-mcu-display`, `luci-app-peripherals`, `cm5-button-scripts`) require `openwrt_packages` feed at build time.
 
 ## Development rules
 
-1. **Kernel/DTS changes** — edit patches under `patches-6.18/` or source in `immortal_opi_cm5/dts-src/` then export patches (994–997 series for CM5).
-2. **Runtime behavior** — prefer `armv8/base-files/etc/uci-defaults/` for first-boot migration; `board.d/` for initial network layout.
+1. **Kernel/DTS changes** — edit patches under `patches-6.18/` or source in `immortal_opi_cm5/dts-src/` then export patches (994–9999 CM5 series).
+2. **Runtime behavior** — prefer `armv8/base-files/etc/uci-defaults/` for first-boot migration; `board.d/` for initial network/LED/wireless layout.
 3. **Scope** — CM5 changes should not break other `rockchip/armv8` devices; use `board_name` guards in shell scripts.
 4. **Package recipes** — daemons and LuCI apps belong in **openwrt-packages**, not duplicated here; add package names to `DEVICE_PACKAGES` only.
 5. **macOS builds** — always via `Documents/ build_immortalwrt/scripts/build-immortalwrt-macos.sh --source $(pwd)`.
@@ -105,8 +107,8 @@ cd "Documents/ build_immortalwrt"
 |-------|-------------|
 | `immortalwrt-build-system` | Makefile targets, feeds, menuconfig, single-package builds |
 | `rockchip-cm5-target` | armv8.mk profile, DEVICE_PACKAGES, bootscript, image layout |
-| `cm5-base-files` | board.d, uci-defaults, Wi-Fi, network migrate, buttons |
-| `rockchip-kernel-dts` | patches-6.18, CM5 DTS/fan/buttons, patch export workflow |
+| `cm5-base-files` | board.d, uci-defaults, Wi-Fi, LEDs, network migrate, buttons |
+| `rockchip-kernel-dts` | patches-6.18, CM5 DTS/fan/buttons/LEDs/OLED, patch export |
 
 ## References
 

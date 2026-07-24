@@ -10,7 +10,7 @@ description: >-
 
 ## Prerequisites
 
-- GNU/Linux (Debian 11+ preferred) or **macOS via Docker** (` build_immortalwrt/`)
+- GNU/Linux (Debian 11+ preferred) or **macOS via Docker** (`Documents/ build_immortalwrt/`)
 - Path must **not contain spaces** (`Makefile` enforces this)
 - Case-sensitive filesystem required
 
@@ -52,17 +52,19 @@ Requires feeds installed and `.config` with target selected.
 
 Default: `feeds.conf.default` (ImmortalWrt packages, luci, …).
 
-CM5 macOS builds use minimal `feeds.conf.cm5` + auto-mounted `openwrt_packages` for custom packages.
+CM5 macOS builds use minimal `feeds.conf.cm5` + auto-mounted `openwrt_packages` for custom packages (`luci-app-oled`, `luci-app-mcu-display`, `luci-app-peripherals`, `cm5-button-scripts`, …).
 
 ```sh
 ./scripts/feeds update openwrt_packages
 ./scripts/feeds install -p openwrt_packages -a
 ```
 
+Custom feed packages are **baked into the image**. Do not expect runtime `apk` downloads from `openwrt_packages` / `awgopenwrt` mirrors (CM5 strips those URLs via `97-cm5-apk-feeds`).
+
 ## macOS (Docker)
 
 ```sh
-"/Users/t-rex-xp/Documents/ build_immortalwrt/scripts/build-immortalwrt-macos.sh" \
+"/Users/t-rex-xp/Documents/ build_immortalwrt/scripts/build-immortalwrt-macos.sh" \
   --source /Users/t-rex-xp/Documents/immortalwrt \
   --device xunlong_orangepi-cm5-base
 ```

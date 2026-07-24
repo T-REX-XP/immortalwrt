@@ -2,7 +2,7 @@
 name: rockchip-kernel-dts
 description: >-
   Rockchip kernel 6.18 patches and CM5 device tree for ImmortalWrt. Use when editing
-  patches-6.18/*cm5*.patch, fan/button DTS nodes, eMMC boot order, or exporting
+  patches-6.18/*cm5*.patch, fan/button/LED/OLED DTS nodes, eMMC boot order, or exporting
   DTS from immortal_opi_cm5/dts-src/.
 ---
 
@@ -31,7 +31,7 @@ Patches directory: `target/linux/rockchip/patches-6.18/`
 | `999-*-oled-rst` | `waveshare-oled-rst` gpio-led on **GPIO1_B4** (FPC pad 9) |
 | `9999-*-oled-rst-pinctrl` | FPC I2C SoC pull-ups |
 
-Patch numbering: use next free `99x-` slot in `patches-6.18/`; keep series prefix consistent.
+Patch numbering: use next free `99x-` / `999x-` slot in `patches-6.18/`; keep series prefix consistent.
 
 ## DTS source workflow
 
@@ -61,6 +61,16 @@ Kernel module: `kmod-hwmon-pwmfan` → `pwm_fan` → hwmon name `pwmfan`.
 DTS defines GPIO keys consumed by `kmod-button-hotplug` → `/etc/rc.button/*`.
 
 Userspace scripts: `cm5-button-scripts` (openwrt-packages).
+
+## LEDs
+
+WAN/LAN are PWM netdev LEDs; polarity inverted in DTS (`9980`). Userspace names/sysfs mapping: `board.d/01_leds` + `uci-defaults/96-cm5-leds`.
+
+## OLED HAT
+
+- `998`: FPC `i2c7` for panel bus (`/dev/i2c-7`)
+- `999` / `9999`: RST gpio + pinctrl pull-ups
+- Userspace: `luci-app-oled` / `oledd` (openwrt-packages)
 
 ## eMMC
 

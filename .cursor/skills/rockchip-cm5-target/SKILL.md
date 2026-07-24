@@ -28,11 +28,12 @@ description: >-
 
 When adding packages, append to `DEVICE_PACKAGES` in `armv8.mk`:
 
-- **Hardware:** `kmod-hwmon-pwmfan`, `kmod-r8125`, `kmod-input-adc-keys`, `kmod-button-hotplug`
-- **Custom feed:** `luci-app-peripherals`, `luci-app-oled`, `cm5-button-scripts` (button hotplug scripts; OLED menu mapping in **luci-app-oled**)
-- **Network/VPN:** WireGuard, AmneziaWG, Tailscale, Cloudflared, …
+- **Hardware:** `kmod-hwmon-pwmfan`, `kmod-r8125`, `kmod-input-adc-keys`, `kmod-button-hotplug`, `i2c-tools`, `gpiod-tools`
+- **Custom feed:** `luci-app-peripherals`, `luci-app-oled`, `luci-app-mcu-display`, `cm5-button-scripts` (button hotplug; OLED menu mapping in **luci-app-oled**)
+- **Network/VPN:** WireGuard, AmneziaWG, Tailscale, Cloudflared, WoL (`luci-app-wol`, `etherwake`)
+- **LuCI core:** `luci-ssl`, `luci-mod-network`, `luci-mod-status`, `luci-mod-dashboard`, `luci-app-commands`
 - **Services:** nlbwmon, ttyd (no Docker, travelmate, blocky, PBR, fwknopd, privoxy, watchcat, speedtest, SMB, DLNA, statistics, SQM)
-- **Wi-Fi USB:** `kmod-mt76x2u`, `kmod-rtl8812au-ct`, `wpad-openssl`, `hostapd-utils`
+- **Wi-Fi USB:** `kmod-mt76x2u`, `kmod-rtl8812au-ct`, `wpad-openssl`, `hostapd-utils`, `wireless-regdb`
 
 Recipes live in **openwrt-packages** or ImmortalWrt feeds — this tree only lists them in `DEVICE_PACKAGES`.
 
@@ -50,13 +51,14 @@ DTS enables eMMC (`sdhci`); U-Boot prefers eMMC. Same image for both media.
 
 ## Manifest verification
 
-Use `IMMORTALWRT_EXPECT_PACKAGES` in macOS build (see ` build_immortalwrt` README).
+Use `IMMORTALWRT_EXPECT_PACKAGES` in macOS build (see `Documents/ build_immortalwrt` README).
 
 ## After DEVICE_PACKAGES change
 
 1. Rebuild image (not just single package if new to profile)
 2. Verify manifest lists new packages
 3. Custom feed packages need `openwrt_packages` feed at build time
+4. Do not add runtime `apk`/`opkg` feed URLs for `openwrt_packages` or `awgopenwrt` — packages are baked in; see `97-cm5-apk-feeds`
 
 ## Do not
 
