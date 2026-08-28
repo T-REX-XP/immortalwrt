@@ -628,7 +628,6 @@ define Device/xunlong_orangepi-cm5-base
 	luci-app-cloudflared luci-app-peripherals luci-app-oled luci-app-mcu-display i2c-tools gpiod-tools coreutils-nohup \
 	kmod-input-adc-keys kmod-button-hotplug kmod-wireguard wireguard-tools luci-proto-wireguard rpcd-mod-wireguard \
 	kmod-amneziawg amneziawg-tools luci-proto-amneziawg \
-	yggdrasil luci-proto-yggdrasil \
 	usb-modeswitch usbutils kmod-mt76x2u \
 	kmod-rtl8812au-ct wpad-openssl hostapd-utils cm5-button-scripts luci-app-wol etherwake \
 	luci-app-nlbwmon nlbwmon luci-app-ttyd ttyd \
