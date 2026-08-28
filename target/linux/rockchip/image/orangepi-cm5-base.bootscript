@@ -20,9 +20,9 @@ fi
 
 # MT7612U (and similar) installer CD-ROM (0e8d:2870): ignore so usbmode can switch to wlan.
 # Required when usb-storage is built-in (CONFIG_USB_STORAGE=y); modules.d quirks do not apply.
-# ttyS2 (debug UART) is reserved for mcudd @ 115200 — no runtime serial console.
-# earlycon remains for early boot only; restore console=ttyS2,1500000 via fw_setenv for bench debug.
-setenv bootargs "coherent_pool=2M console=tty1 earlycon=uart8250,mmio32${serial_addr} root=PARTUUID=${uuid} rw rootwait usb-storage.quirks=0e8d:2870:i";
+# ttyS2 (J3 debug header) is reserved for mcudd @ 115200 — no kernel serial console.
+# For bench UART debug: fw_setenv bootargs "coherent_pool=2M console=tty1 earlycon=uart8250,mmio32,0xfeb50000 console=ttyS2,1500000n8 root=PARTUUID=${uuid} rw rootwait usb-storage.quirks=0e8d:2870:i"
+setenv bootargs "coherent_pool=2M console=tty1 root=PARTUUID=${uuid} rw rootwait usb-storage.quirks=0e8d:2870:i";
 
 load ${devtype} ${devnum}:1 ${kernel_addr_r} kernel.img
 
