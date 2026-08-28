@@ -82,7 +82,7 @@ Hotspot autoconfig runs **once** until `/etc/.cm5_wifi_ap_configured` exists; cr
 - Scripts run **once** on first boot (removed after success) **or** use an explicit marker file when they must survive package upgrades
 - Use `board_name` case guard for CM5-only logic
 - Prefer `uci commit` only when changes made
-- Blocky/DNS defaults live in openwrt-packages `blocky` package uci-defaults when Blocky is installed (not in default CM5 image)
+- Blocky/DNS defaults live in openwrt-packages `blocky` package (`90-blocky-enable` uci-defaults; baked into CM5 image)
 
 ## Testing after changes
 

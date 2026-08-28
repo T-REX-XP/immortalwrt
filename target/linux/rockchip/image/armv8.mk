@@ -632,6 +632,7 @@ define Device/xunlong_orangepi-cm5-base
 	usb-modeswitch usbutils kmod-mt76x2u \
 	kmod-rtl8812au-ct wpad-openssl hostapd-utils cm5-button-scripts luci-app-wol etherwake \
 	luci-app-nlbwmon nlbwmon luci-app-ttyd ttyd \
+	blocky luci-app-blocky \
 	luci-app-commands wireless-regdb
 endef
 TARGET_DEVICES += xunlong_orangepi-cm5-base

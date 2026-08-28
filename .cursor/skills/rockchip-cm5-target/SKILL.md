@@ -32,7 +32,7 @@ When adding packages, append to `DEVICE_PACKAGES` in `armv8.mk`:
 - **Custom feed:** `luci-app-peripherals`, `luci-app-oled`, `luci-app-mcu-display`, `cm5-button-scripts` (button hotplug; OLED menu mapping in **luci-app-oled**)
 - **Network/VPN:** WireGuard, AmneziaWG, Tailscale, Cloudflared, WoL (`luci-app-wol`, `etherwake`)
 - **LuCI core:** `luci-ssl`, `luci-mod-network`, `luci-mod-status`, `luci-mod-dashboard`, `luci-app-commands`
-- **Services:** nlbwmon, ttyd (no Docker, travelmate, blocky, PBR, fwknopd, privoxy, watchcat, speedtest, SMB, DLNA, statistics, SQM)
+- **Services:** `nlbwmon`, `ttyd`, `blocky`, `luci-app-blocky` (no Docker, travelmate, PBR, fwknopd, privoxy, watchcat, speedtest, SMB, DLNA, statistics, SQM)
 - **Wi-Fi USB:** `kmod-mt76x2u`, `kmod-rtl8812au-ct`, `wpad-openssl`, `hostapd-utils`, `wireless-regdb`
 
 Recipes live in **openwrt-packages** or ImmortalWrt feeds — this tree only lists them in `DEVICE_PACKAGES`.
