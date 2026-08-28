@@ -625,7 +625,7 @@ define Device/xunlong_orangepi-cm5-base
   UBOOT_DEVICE_NAME := orangepi-5-rk3588s
   DEVICE_PACKAGES := kmod-hwmon-pwmfan kmod-r8125 luci-ssl luci-mod-network luci-mod-status \
 	luci-mod-dashboard iwinfo rpcd-mod-iwinfo tailscale cloudflared luci-app-tailscale-community \
-	luci-app-cloudflared luci-app-peripherals luci-app-oled luci-app-mcu-display i2c-tools gpiod-tools coreutils-nohup \
+	luci-app-cloudflared luci-app-peripherals luci-app-mcu-display i2c-tools gpiod-tools \
 	kmod-input-adc-keys kmod-button-hotplug kmod-wireguard wireguard-tools luci-proto-wireguard rpcd-mod-wireguard \
 	kmod-amneziawg amneziawg-tools luci-proto-amneziawg \
 	usb-modeswitch usbutils kmod-mt76x2u \
