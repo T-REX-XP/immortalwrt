@@ -29,6 +29,7 @@ description: >-
 When adding packages, append to `DEVICE_PACKAGES` in `armv8.mk`:
 
 - **Hardware:** `kmod-hwmon-pwmfan`, `kmod-r8125`, `kmod-input-adc-keys`, `kmod-button-hotplug`, `i2c-tools`, `gpiod-tools`
+- **SSH/file transfer:** `openssh-sftp-server` (`/usr/libexec/sftp-server` for Dropbear; host `scp`/`sftp` to the router)
 - **Custom feed:** `luci-app-peripherals`, `luci-app-oled`, `luci-app-mcu-display`, `cm5-button-scripts` (button hotplug; OLED menu mapping in **luci-app-oled**)
 - **Network/VPN:** WireGuard, AmneziaWG, Tailscale, Cloudflared, WoL (`luci-app-wol`, `etherwake`) — (optional via `openwrt_packages` feed)
 - **LuCI core:** `luci-ssl`, `luci-mod-network`, `luci-mod-status`, `luci-mod-dashboard`, `luci-app-commands`

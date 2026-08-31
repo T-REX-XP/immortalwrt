@@ -632,6 +632,7 @@ define Device/xunlong_orangepi-cm5-base
 	kmod-rtl8812au-ct wpad-openssl hostapd-utils cm5-button-scripts luci-app-wol etherwake \
 	luci-app-nlbwmon nlbwmon luci-app-ttyd ttyd \
 	blocky luci-app-blocky \
+	openssh-sftp-server \
 	luci-app-commands wireless-regdb
 endef
 TARGET_DEVICES += xunlong_orangepi-cm5-base
