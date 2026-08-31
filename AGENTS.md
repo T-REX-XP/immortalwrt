@@ -111,7 +111,7 @@ After flash or sysupgrade, validate runtime on **`192.168.8.1`** via host MCP â€
 | Skill | **`openwrt-mcp-ssh`** â€” UCI/apk via `user-openwrt`; SSH for mcudd deploy + link test |
 | Docs | `docs/openwrt-mcp-server.md` |
 
-Use with **`cm5-base-files`** (expected UCI/LAN) and **`oled-peripherals-cm5`** / **`blocky-dns-cm5`** for display and DNS checks.
+Use with **`cm5-base-files`** (expected UCI/LAN), **`mcu-display-cm5`** (ESP32 / orig C mcudd / LuCI sidecar), and **`blocky-dns-cm5`** for display and DNS checks.
 
 ## Project skills
 
@@ -122,6 +122,7 @@ Use with **`cm5-base-files`** (expected UCI/LAN) and **`oled-peripherals-cm5`** 
 | `cm5-base-files` | board.d, uci-defaults, Wi-Fi, LEDs, network migrate, buttons |
 | `rockchip-kernel-dts` | patches-6.18, CM5 DTS/fan/buttons/LEDs/OLED, patch export |
 | `openwrt-mcp-ssh` | Live CM5 validation (skill in `openwrt-packages/.cursor/skills/`) |
+| `mcu-display-cm5` | ESP32 panel + orig C mcudd + LuCI sidecar (skill in `openwrt-packages`) |
 
 ## References
 
