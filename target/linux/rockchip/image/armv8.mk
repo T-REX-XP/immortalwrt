@@ -632,6 +632,8 @@ define Device/xunlong_orangepi-cm5-base
 	kmod-rtl8812au-ct wpad-openssl hostapd-utils cm5-button-scripts luci-app-wol etherwake \
 	luci-app-nlbwmon nlbwmon luci-app-ttyd ttyd \
 	blocky luci-app-blocky \
+	snort3 luci-app-snort3 libdaq3 kmod-nft-queue \
+	suricata suricata-etopen tp-eventd luci-app-threat-prevention \
 	openssh-sftp-server picocom screen socat \
 	luci-app-commands wireless-regdb
 endef

@@ -17,6 +17,7 @@ ImmortalWrt 25.x (`rockchip/armv8`), kernel 6.18. LAN `192.168.8.1/24` on `br-la
 ### Network, DNS, remote access
 
 - Blocky DNS + LuCI; clients → dnsmasq `:53` → Blocky `127.0.0.1:5353`
+- Snort3 + LuCI (**Services → Snort IDS/IPS**); Suricata 8 + Threat Prevention LuCI. Both default **disabled** (IDS on `br-lan` when enabled)
 - WireGuard, AmneziaWG, Tailscale, Cloudflared
 - `openssh-sftp-server` so host `scp` / `sftp` works with Dropbear
 
