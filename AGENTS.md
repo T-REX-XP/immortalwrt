@@ -69,7 +69,7 @@ Defined in `target/linux/rockchip/image/armv8.mk` under `Device/xunlong_orangepi
 - Network: `kmod-r8125`, WireGuard, AmneziaWG, Tailscale, Cloudflared, WoL (`luci-app-wol` + `etherwake`) — (optional via feed)
 - UI: `luci-ssl`, `luci-mod-*`, `luci-app-peripherals`, `luci-app-mcu-display`, `luci-app-blocky`, `luci-app-commands`
 - MCU display (feed): `mcudd` on `/dev/ttyS2` (CM5 debug UART) or USB serial; LuCI **Services → MCU Display**; I2C scan in **System → Peripherals → I2C**
-- Platform: `kmod-hwmon-pwmfan`, `cm5-button-scripts` (USERKEY/MaskROM; chains to mcudd via `hotplug-call button`), USB Wi-Fi (`kmod-mt76x2u`, `kmod-rtl8812au-ct`), `i2c-tools`, `gpiod-tools`, `openssh-sftp-server` (SCP/SFTP into Dropbear)
+- Platform: `kmod-hwmon-pwmfan`, `cm5-button-scripts` (USERKEY/MaskROM; chains to mcudd via `hotplug-call button`), USB Wi-Fi (`kmod-mt76x2u`, `kmod-rtl8812au-ct`), `i2c-tools`, `gpiod-tools`, `openssh-sftp-server` (SCP/SFTP into Dropbear), `picocom`/`screen`/`socat` (MCU UART on `/dev/ttyS2`)
 - Services: `nlbwmon`, `ttyd`, `blocky`, `luci-app-blocky` (no Docker, travelmate, PBR, fwknopd, privoxy, watchcat, speedtest, SMB, DLNA, statistics, SQM)
 
 Custom feed packages (`blocky`, `luci-app-blocky`, `luci-app-mcu-display`, `luci-app-peripherals`, `cm5-button-scripts`) require `openwrt_packages` feed at build time.
@@ -123,6 +123,7 @@ Use with **`cm5-base-files`** (expected UCI/LAN), **`mcu-display-cm5`** (ESP32 /
 | `rockchip-kernel-dts` | patches-6.18, CM5 DTS/fan/buttons/LEDs/OLED, patch export |
 | `openwrt-mcp-ssh` | Live CM5 validation (skill in `openwrt-packages/.cursor/skills/`) |
 | `mcu-display-cm5` | ESP32 panel + orig C mcudd + LuCI sidecar (skill in `openwrt-packages`) |
+| `cm5-mcu-serial` | Direct `/dev/ttyS2` RDCP via picocom/screen/socat (skill in `openwrt-packages`) |
 
 ## References
 
