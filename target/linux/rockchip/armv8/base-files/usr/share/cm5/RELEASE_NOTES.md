@@ -11,7 +11,7 @@ ImmortalWrt 25.x (`rockchip/armv8`), kernel 6.18. LAN `192.168.8.1/24` on `br-la
 ### MCU display
 
 - LuCI **Services → MCU Display** (`luci-app-mcu-display` r54)
-- Host daemon: Go `mcudd` 1.0.0-r13 on `/dev/ttyS2` at 115200 8N1 (debug UART; no kernel console on ttyS2)
+- Host daemon: Go `mcudd` on `/dev/ttyS2` at 115200 8N1. This debug image enables kernel console on the same J3 UART at 1.5 Mbaud — unplug the ESP32 panel while capturing boot logs.
 - Serial tools: `picocom`, `screen`, `socat` (stop `mcudd` first)
 
 ### Network, DNS, remote access
