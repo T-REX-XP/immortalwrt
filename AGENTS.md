@@ -111,7 +111,7 @@ After flash or sysupgrade, validate runtime on **`192.168.8.1`** via host MCP â€
 | Skill | **`openwrt-mcp-ssh`** â€” UCI/apk via `user-openwrt`; SSH for mcudd deploy + link test |
 | Docs | `docs/openwrt-mcp-server.md` |
 
-Use with **`cm5-base-files`** (expected UCI/LAN), **`mcu-display-cm5`** (ESP32 / Go mcudd / LuCI sidecar), and **`blocky-dns-cm5`** for display and DNS checks.
+Use with **`cm5-base-files`** (expected UCI/LAN), **`mcu-display-cm5`** (ESP32 / Go mcudd / LuCI sidecar), **`blocky-dns-cm5`**, **`suricata-ids-cm5`**, and **`snort3-ids-cm5`** (skills in `openwrt-packages/`).
 
 ## Project skills
 
@@ -124,6 +124,9 @@ Use with **`cm5-base-files`** (expected UCI/LAN), **`mcu-display-cm5`** (ESP32 /
 | `openwrt-mcp-ssh` | Live CM5 validation (skill in `openwrt-packages/.cursor/skills/`) |
 | `mcu-display-cm5` | ESP32 panel + Go mcudd + LuCI sidecar (skill in `openwrt-packages`) |
 | `cm5-mcu-serial` | Direct `/dev/ttyS2` RDCP via picocom/screen/socat (skill in `openwrt-packages`) |
+| `cm5-security-stack` | IDS/DNS tiers (skill in `openwrt-packages`) |
+| `suricata-ids-cm5` | Suricata LuCI + ET Open (skill in `openwrt-packages`) |
+| `snort3-ids-cm5` | Snort LuCI + generated Lua (skill in `openwrt-packages`) |
 
 ## References
 
