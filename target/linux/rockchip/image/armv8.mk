@@ -633,7 +633,7 @@ define Device/xunlong_orangepi-cm5-base
 	luci-app-nlbwmon nlbwmon luci-app-ttyd ttyd \
 	blocky luci-app-blocky \
 	snort3 luci-app-snort3 libdaq3 kmod-nft-queue \
-	suricata suricata-etopen tp-eventd luci-app-threat-prevention \
+	suricata suricata-etopen tp-eventd luci-app-suricata \
 	openssh-sftp-server picocom screen socat \
 	luci-app-commands wireless-regdb
 endef
