@@ -76,10 +76,10 @@ Custom feed packages (`blocky`, `luci-app-blocky`, `luci-app-mcu-display`, `luci
 
 ## Development rules
 
-1. **Kernel/DTS changes** — edit patches under `patches-6.18/` or source in `immortal_opi_cm5/dts-src/` then export patches (994–9999 CM5 series).
+1. **Kernel/DTS changes** — edit patches under `patches-6.18/` or source in `immortal_opi_cm5/dts-src/` then export patches (994–9999 CM5 series). OpenWrt 25.x default kernel is 6.12; **this rockchip CM5 tree stays 6.18** — do not retarget it. Rule **`openwrt-25x`**.
 2. **Runtime behavior** — prefer `armv8/base-files/etc/uci-defaults/` for first-boot migration; `board.d/` for initial network/LED/wireless layout.
 3. **Scope** — CM5 changes should not break other `rockchip/armv8` devices; use `board_name` guards in shell scripts.
-4. **Package recipes** — daemons and LuCI apps belong in **openwrt-packages**, not duplicated here; add package names to `DEVICE_PACKAGES` only.
+4. **Package recipes** — daemons and LuCI apps belong in **openwrt-packages**, not duplicated here; add package names to `DEVICE_PACKAGES` only. On-router package manager is **`apk`**, not `opkg`.
 5. **macOS builds** — always via `Documents/ build_immortalwrt/scripts/build-immortalwrt-macos.sh --source $(pwd)`.
 6. **Commits** — only when the user explicitly asks.
 
@@ -117,6 +117,7 @@ Use with **`cm5-base-files`** (expected UCI/LAN), **`mcu-display-cm5`** (ESP32 /
 
 | Skill | When to use |
 |-------|-------------|
+| `openwrt-25x` | ImmortalWrt 25.x: apk vs opkg; kernel 6.12 default vs this rockchip **6.18** |
 | `immortalwrt-build-system` | Makefile targets, feeds, menuconfig, single-package builds |
 | `rockchip-cm5-target` | armv8.mk profile, DEVICE_PACKAGES, bootscript, image layout |
 | `cm5-base-files` | board.d, uci-defaults, Wi-Fi, LEDs, network migrate, buttons |

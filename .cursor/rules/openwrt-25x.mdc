@@ -1,0 +1,27 @@
+---
+description: >-
+  OpenWrt / ImmortalWrt 25.x: apk not opkg; default kernel 6.12 except this
+  CM5 rockchip tree (6.18). Apply for build, packages, QA, or kernel Makefile edits.
+alwaysApply: true
+---
+
+# OpenWrt 25.x (this ImmortalWrt tree)
+
+## Package manager
+
+25.x uses **`apk`** (`.apk`). Do not use `opkg` / `.ipk` in docs, QA, or image scripts. `make world` writes an **apk** index.
+
+## Kernel
+
+OpenWrt **25.x** default is Linux **6.12**. This CM5 fork keeps rockchip on **6.18**:
+
+```makefile
+# target/linux/rockchip/Makefile
+KERNEL_PATCHVER:=6.18
+```
+
+Patches: `target/linux/rockchip/patches-6.18/`. Do **not** retarget rockchip to 6.12. Skill **`rockchip-kernel-dts`**.
+
+## Apps / RPC
+
+LuCI backends in the sibling **openwrt-packages** feed are **ucode** (`/usr/share/rpcd/ucode/`, `rpcd-mod-ucode`), not shell/Lua `/usr/libexec/rpcd/`. Skill **`openwrt-25x`** in that repo.

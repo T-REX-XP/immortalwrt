@@ -34,7 +34,7 @@ make -j$(nproc) V=s
   → package/stamp-compile     (all selected packages)
   → package/stamp-install
   → target/stamp-install      (rootfs + images)
-  → package/index             (apk/ipk index)
+  → package/index             (apk index)
 ```
 
 Utility targets: `prepare`, `clean`, `dirclean`, `targetclean`, `cacheclean`, `buildinfo`, `checksum`.
